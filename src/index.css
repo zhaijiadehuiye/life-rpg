@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-ink-950 text-zinc-200 font-sans antialiased;
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(61, 214, 195, 0.05), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(224, 184, 102, 0.04), transparent 60%);
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@layer components {
+  .card {
+    @apply bg-ink-850 border border-line rounded-xl2 shadow-card;
+  }
+  .card-pad {
+    @apply card p-4 sm:p-5;
+  }
+  .label {
+    @apply text-[11px] uppercase tracking-[0.14em] text-muted;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors border border-line bg-ink-800 text-zinc-200 hover:bg-ink-700 disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors border border-accent/40 bg-accent text-ink-950 hover:bg-accent/90 disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .input {
+    @apply w-full rounded-lg bg-ink-900 border border-line px-3 py-2 text-sm text-zinc-100 placeholder:text-muted focus:outline-none focus:border-accent/50 focus:shadow-glow;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-line bg-ink-800 px-2 py-0.5 text-[11px] text-muted;
+  }
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  outline: none;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #3dd6c3;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(61,214,195,0.5);
+}
+input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #3dd6c3;
+  border: none;
+  cursor: pointer;
+}

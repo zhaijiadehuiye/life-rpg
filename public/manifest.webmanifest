@@ -1,0 +1,12 @@
+{
+  "name": "Life RPG · 人生操作系统",
+  "short_name": "Life RPG",
+  "description": "把现实成长转换成角色属性、资本与主线任务的人生游戏化操作系统",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a0b0f",
+  "theme_color": "#0a0b0f",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

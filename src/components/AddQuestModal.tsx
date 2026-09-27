@@ -1,13 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Modal } from './Modal'
 import { useGameStore } from '../store/useGameStore'
 import { CAPITAL_META } from '../data/constants'
 import { DIFFICULTY_PRESET } from '../utils/xp'
-import type { CapitalKey, Difficulty } from '../types'
+import type { CapitalKey, Difficulty, SideQuest, DailyQuest } from '../types'
 
 type Mode = 'side' | 'daily' | 'main'
 
-export function AddQuestModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export interface EditingQuest {
+  kind: Mode
+  id: string
+  title: string
+  description?: string
+  difficulty?: Difficulty
+  capitalKey?: CapitalKey
+  skillId?: string
+  minutes?: number
+  domain?: string
+  targetDate?: string
+  milestones?: string[]
+}
+
+export function AddQuestModal({
+  open,
+  onClose,
+  editing,
+}: {
+  open: boolean
+  onClose: () => void
+  editing?: EditingQuest | null
+}) {
   const s = useGameStore()
   const [mode, setMode] = useState<Mode>('side')
   const [title, setTitle] = useState('')
@@ -20,20 +42,69 @@ export function AddQuestModal({ open, onClose }: { open: boolean; onClose: () =>
   const [domain, setDomain] = useState('career')
   const [targetDate, setTargetDate] = useState('')
 
-  const preset = DIFFICULTY_PRESET[difficulty]
-  const xpReward = preset.min + Math.round((preset.max - preset.min) / 2)
+  useEffect(() => {
+    if (!open) return
+    if (editing) {
+      setMode(editing.kind)
+      setTitle(editing.title)
+      setDescription(editing.description ?? '')
+      setDifficulty(editing.difficulty ?? 'normal')
+      setCapitalKey(editing.capitalKey ?? '')
+      setSkillId(editing.skillId ?? '')
+      setMinutes(editing.minutes ?? 30)
+      setDomain(editing.domain ?? 'career')
+      setTargetDate(editing.targetDate ?? '')
+      setMilestonesText((editing.milestones ?? []).join('\n'))
+    } else {
+      setMode('side')
+      setTitle('')
+      setDescription('')
+      setDifficulty('normal')
+      setCapitalKey('')
+      setSkillId('')
+      setMinutes(30)
+      setMilestonesText('')
+      setTargetDate('')
+    }
+  }, [open, editing])
 
-  const reset = () => {
-    setTitle(''); setDescription(''); setDifficulty('normal'); setCapitalKey('')
-    setSkillId(''); setMinutes(30); setMilestonesText(''); setTargetDate('')
-  }
+  const preset = DIFFICULTY_PRESET[difficulty]
+  const xpReward = editing?.difficulty
+    ? undefined
+    : preset.min + Math.round((preset.max - preset.min) / 2)
 
   const submit = () => {
     if (!title.trim()) return
-    if (mode === 'side') {
-      s.addSideQuest({ title: title.trim(), description: description.trim(), difficulty, xpReward, capitalKey: capitalKey || undefined, skillId: skillId || undefined, minutes })
+    if (editing) {
+      const base = {
+        title: title.trim(),
+        description: description.trim(),
+        difficulty,
+        capitalKey: capitalKey || undefined,
+        skillId: skillId || undefined,
+        minutes,
+      }
+      if (editing.kind === 'side') s.updateSideQuest(editing.id, base as Partial<SideQuest>)
+      else if (editing.kind === 'daily') s.updateDailyQuest(editing.id, base as Partial<DailyQuest>)
+      else s.updateMainQuest(editing.id, {
+        title: title.trim(),
+        description: description.trim(),
+        domain,
+        targetDate: targetDate || undefined,
+        milestones: milestonesText.split('\n').map((t) => t.trim()).filter(Boolean),
+      })
+    } else if (mode === 'side') {
+      s.addSideQuest({
+        title: title.trim(), description: description.trim(), difficulty,
+        xpReward: xpReward!, capitalKey: capitalKey || undefined,
+        skillId: skillId || undefined, minutes,
+      })
     } else if (mode === 'daily') {
-      s.addDailyQuest({ title: title.trim(), description: description.trim(), difficulty, xpReward, capitalKey: capitalKey || undefined, skillId: skillId || undefined, minutes })
+      s.addDailyQuest({
+        title: title.trim(), description: description.trim(), difficulty,
+        xpReward: xpReward!, capitalKey: capitalKey || undefined,
+        skillId: skillId || undefined, minutes,
+      })
     } else {
       s.addMainQuest({
         title: title.trim(), description: description.trim(), domain, difficulty,
@@ -41,30 +112,36 @@ export function AddQuestModal({ open, onClose }: { open: boolean; onClose: () =>
         milestones: milestonesText.split('\n').map((t) => t.trim()).filter(Boolean),
       })
     }
-    reset(); onClose()
+    onClose()
   }
 
-  return (
-    <Modal open={open} onClose={onClose} title="新建任务">
-      <div className="space-y-4">
-        <div className="flex gap-1.5">
-          {(['side', 'daily', 'main'] as Mode[]).map((m) => (
-            <button key={m} onClick={() => setMode(m)} className={`btn flex-1 ${mode === m ? 'border-accent/50 text-accent' : ''}`}>
-              {m === 'side' ? '支线' : m === 'daily' ? '日常' : '主线'}
-            </button>
-          ))}
-        </div>
+  const activeMode = editing ? editing.kind : mode
 
-        <input className="input" placeholder={mode === 'main' ? '主线标题，例：英语达到 B2' : '任务标题'} value={title} onChange={(e) => setTitle(e.target.value)} />
+  return (
+    <Modal open={open} onClose={onClose} title={editing ? '编辑任务' : '新建任务'}>
+      <div className="space-y-4">
+        {!editing && (
+          <div className="flex gap-1.5">
+            {(['side', 'daily', 'main'] as Mode[]).map((m) => (
+              <button key={m} onClick={() => setMode(m)}
+                className={`btn flex-1 ${mode === m ? 'border-accent/50 text-accent' : ''}`}>
+                {m === 'side' ? '支线' : m === 'daily' ? '日常' : '主线'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <input className="input" placeholder={activeMode === 'main' ? '主线标题，例：英语达到 B2' : '任务标题'} value={title} onChange={(e) => setTitle(e.target.value)} />
         <textarea className="input" rows={2} placeholder="描述（可选）" value={description} onChange={(e) => setDescription(e.target.value)} />
 
-        {mode !== 'main' && (
+        {activeMode !== 'main' && (
           <>
             <div>
-              <div className="label mb-1.5">难度 · 默认奖励 {xpReward} XP</div>
+              <div className="label mb-1.5">难度{xpReward ? ` · 默认奖励 ${xpReward} XP` : ''}</div>
               <div className="flex gap-1.5">
                 {(Object.keys(DIFFICULTY_PRESET) as Difficulty[]).map((d) => (
-                  <button key={d} onClick={() => setDifficulty(d)} className={`btn flex-1 text-xs ${difficulty === d ? 'border-accent/50 text-accent' : ''}`}>
+                  <button key={d} onClick={() => setDifficulty(d)}
+                    className={`btn flex-1 text-xs ${difficulty === d ? 'border-accent/50 text-accent' : ''}`}>
                     {DIFFICULTY_PRESET[d].label}
                   </button>
                 ))}
@@ -95,7 +172,7 @@ export function AddQuestModal({ open, onClose }: { open: boolean; onClose: () =>
           </>
         )}
 
-        {mode === 'main' && (
+        {activeMode === 'main' && (
           <>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -116,7 +193,9 @@ export function AddQuestModal({ open, onClose }: { open: boolean; onClose: () =>
           </>
         )}
 
-        <button className="btn-primary w-full" onClick={submit} disabled={!title.trim()}>创建</button>
+        <button className="btn-primary w-full" onClick={submit} disabled={!title.trim()}>
+          {editing ? '保存修改' : '创建'}
+        </button>
       </div>
     </Modal>
   )

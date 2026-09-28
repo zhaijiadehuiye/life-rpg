@@ -15,13 +15,13 @@ export default function Character() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-semibold text-zinc-100">角色面板</h1>
+      <h1 className="text-xl font-semibold text-zinc-800">角色面板</h1>
       <div className="card-pad flex items-center gap-4">
         <div className="w-16 h-16 rounded-full bg-ink-700 border border-accent/40 shadow-glow flex items-center justify-center text-accent font-mono text-xl">
           {s.profile?.name?.[0]?.toUpperCase() ?? '?'}
         </div>
         <div className="flex-1">
-          <div className="text-lg text-zinc-100">{s.profile?.name}</div>
+          <div className="text-lg text-zinc-800">{s.profile?.name}</div>
           <div className="text-xs text-muted mt-0.5">
             Lv.{s.profile?.level} · 加入 {daysUsed} 天 · 最长连续 {s.profile?.longestStreak} 天
           </div>
@@ -40,7 +40,7 @@ export default function Character() {
             return (
               <div key={c.key} className="card p-3">
                 <div className="flex justify-between items-baseline">
-                  <div className="text-sm text-zinc-100">{c.name}</div>
+                  <div className="text-sm text-zinc-800">{c.name}</div>
                   <div className="text-xs text-muted font-mono">基础 {c.level} · 当前有效 <span className="text-accent">{effective}</span></div>
                 </div>
                 <div className="mt-2"><Meter value={c.level} /></div>
@@ -58,7 +58,7 @@ export default function Character() {
             <div key={e.id} className={`card p-3 flex gap-2.5 ${e.type === 'buff' ? 'border-accent/30' : 'border-danger/30'}`}>
               <div className={e.type === 'buff' ? 'text-accent' : 'text-danger'}><Icon name={e.icon} size={18} /></div>
               <div>
-                <div className="text-sm text-zinc-100">{e.name}</div>
+                <div className="text-sm text-zinc-800">{e.name}</div>
                 <div className="text-[11px] text-muted">{e.description}</div>
               </div>
             </div>
@@ -73,7 +73,7 @@ export default function Character() {
             <div key={a.id} className="card p-3 flex gap-2.5">
               <div className="text-gold"><Icon name={a.icon} size={18} /></div>
               <div>
-                <div className="text-sm text-zinc-100">{a.name}</div>
+                <div className="text-sm text-zinc-800">{a.name}</div>
                 <div className="text-[11px] text-muted">{a.unlockedAt && formatChineseDate(a.unlockedAt)}</div>
               </div>
             </div>

@@ -14,9 +14,9 @@ export default function More() {
   ]
   return (
     <div className="space-y-3">
-      <h1 className="text-xl font-semibold text-zinc-100 mb-4">更多</h1>
+      <h1 className="text-xl font-semibold text-zinc-800 mb-4">更多</h1>
       {items.map((it) => (
-        <Link key={it.to} to={it.to} className="card-pad flex items-center gap-3 text-sm text-zinc-200 hover:border-accent/40">
+        <Link key={it.to} to={it.to} className="card-pad flex items-center gap-3 text-sm text-zinc-700 hover:border-accent/40">
           <it.icon size={18} className="text-accent" />
           {it.label}
         </Link>

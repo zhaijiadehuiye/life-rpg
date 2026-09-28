@@ -13,7 +13,7 @@ export default function Quests() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-zinc-100">任务</h1>
+        <h1 className="text-xl font-semibold text-zinc-800">任务</h1>
         <div className="flex gap-2">
           <button className="btn" onClick={s.newRandomEvent}>
             <Dices size={14} /> 随机事件
@@ -32,7 +32,7 @@ export default function Quests() {
             <div key={m.id} className="card-pad">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-base text-zinc-100 flex items-center gap-2">
+                  <div className="text-base text-zinc-800 flex items-center gap-2">
                     {m.title}
                     {m.status === 'completed' && <span className="chip text-good border-good/30">已完成</span>}
                   </div>
@@ -60,7 +60,7 @@ export default function Quests() {
                   <label key={mi.id} className="flex items-center gap-2 text-sm cursor-pointer">
                     <input type="checkbox" checked={mi.completed} onChange={() => s.toggleMilestone(m.id, mi.id)}
                       className="accent-accent w-4 h-4" />
-                    <span className={mi.completed ? 'line-through text-muted' : 'text-zinc-200'}>{mi.title}</span>
+                    <span className={mi.completed ? 'line-through text-muted' : 'text-zinc-700'}>{mi.title}</span>
                   </label>
                 ))}
               </div>
@@ -82,7 +82,7 @@ export default function Quests() {
                   <Check size={14} />
                 </button>
                 <div className="flex-1">
-                  <div className={`text-sm ${done ? 'line-through text-muted' : 'text-zinc-100'}`}>{q.title}</div>
+                  <div className={`text-sm ${done ? 'line-through text-muted' : 'text-zinc-800'}`}>{q.title}</div>
                   <div className="text-[11px] text-muted">+{q.xpReward} XP{done ? ' · 今日已完成' : ''}</div>
                 </div>
                 <button onClick={() => setEditing({
@@ -107,11 +107,11 @@ export default function Quests() {
                 <Check size={14} />
               </button>
               <div className="flex-1">
-                <div className={`text-sm ${q.completed ? 'line-through text-muted' : 'text-zinc-100'}`}>{q.title}</div>
+                <div className={`text-sm ${q.completed ? 'line-through text-muted' : 'text-zinc-800'}`}>{q.title}</div>
                 <div className="text-[11px] text-muted">+{q.xpReward} XP{q.minutes ? ` · ${q.minutes} 分钟` : ''}</div>
               </div>
               {!q.completed && (
-                <button onClick={() => s.skipSideQuest(q.id)} className="text-xs text-muted hover:text-zinc-200">跳过</button>
+                <button onClick={() => s.skipSideQuest(q.id)} className="text-xs text-muted hover:text-zinc-800">跳过</button>
               )}
               {!q.completed && (
                 <button onClick={() => setEditing({
@@ -131,7 +131,7 @@ export default function Quests() {
           {s.randomEvents.length === 0 && <Empty text={'点上方"随机事件"生成一个。'} />}
           {s.randomEvents.map((e) => (
             <div key={e.id} className="card p-3">
-              <div className="text-sm text-zinc-100">{e.title}</div>
+              <div className="text-sm text-zinc-800">{e.title}</div>
               <div className="text-xs text-muted mt-0.5">{e.description}</div>
               {e.status === 'pending' && (
                 <div className="flex gap-2 mt-2">

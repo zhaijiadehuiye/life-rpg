@@ -34,13 +34,13 @@ export default function Journal() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-semibold text-zinc-100">人生时间线</h1>
+      <h1 className="text-xl font-semibold text-zinc-800">人生时间线</h1>
       <section className="card-pad">
         <h2 className="label mb-3">今天 · {formatChineseDate(today)}</h2>
         <div className="space-y-3">
           {FIELDS.map((f) => (
             <div key={f.key}>
-              <div className="text-sm text-zinc-200 mb-1">{f.label}</div>
+              <div className="text-sm text-zinc-700 mb-1">{f.label}</div>
               <textarea className="input" rows={2} placeholder={f.placeholder} value={form[f.key]}
                 onChange={(e) => setForm((v) => ({ ...v, [f.key]: e.target.value }))} />
             </div>
@@ -56,7 +56,7 @@ export default function Journal() {
           {s.logs.map((l) => (
             <details key={l.date} className="card p-3 group">
               <summary className="flex justify-between items-center cursor-pointer list-none">
-                <div className="text-sm text-zinc-100">{formatChineseDate(l.date)}</div>
+                <div className="text-sm text-zinc-800">{formatChineseDate(l.date)}</div>
                 <div className="text-[11px] text-muted font-mono">{l.tasksCompleted} 任务 · +{l.xpEarned} XP</div>
               </summary>
               <div className="mt-3 space-y-2 text-sm">
@@ -78,7 +78,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="text-[11px] text-muted">{label}</div>
-      <div className="text-zinc-200">{value}</div>
+      <div className="text-zinc-700">{value}</div>
     </div>
   )
 }

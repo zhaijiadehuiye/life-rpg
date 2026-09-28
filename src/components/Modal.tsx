@@ -15,8 +15,8 @@ export function Modal({
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full sm:max-w-lg card rounded-b-none sm:rounded-xl2 p-5 max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-zinc-100">{title}</h3>
-          <button onClick={onClose} className="text-muted hover:text-zinc-200">
+          <h3 className="text-base font-semibold text-zinc-800">{title}</h3>
+          <button onClick={onClose} className="text-muted hover:text-zinc-800">
             <X size={18} />
           </button>
         </div>

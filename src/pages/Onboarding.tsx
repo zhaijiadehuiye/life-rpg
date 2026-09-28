@@ -38,7 +38,7 @@ export default function Onboarding() {
       <div className="w-full max-w-xl">
         <div className="text-center mb-8">
           <div className="font-mono text-accent tracking-[0.3em] text-sm">LIFE RPG</div>
-          <h1 className="text-2xl sm:text-3xl font-semibold mt-2 text-zinc-100">把现实成长，养成一个长期角色</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold mt-2 text-zinc-800">把现实成长，养成一个长期角色</h1>
           <p className="text-muted text-sm mt-2">这不是 Todo List。你在现实里做的每一件有价值的事，都会塑造这个角色。</p>
         </div>
 
@@ -51,7 +51,7 @@ export default function Onboarding() {
         <div className="card-pad">
           {step === 0 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-100">Step 1 · 你叫什么？</h2>
+              <h2 className="text-lg font-semibold text-zinc-800">Step 1 · 你叫什么？</h2>
               <p className="text-muted text-sm mt-1">这是你在这个世界的角色名。随时可以改。</p>
               <input className="input mt-4" placeholder="输入角色名" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
               <div className="flex justify-between mt-6">
@@ -63,7 +63,7 @@ export default function Onboarding() {
 
           {step === 1 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-100">Step 2 · 当前最重要的 3 个领域</h2>
+              <h2 className="text-lg font-semibold text-zinc-800">Step 2 · 当前最重要的 3 个领域</h2>
               <p className="text-muted text-sm mt-1">选 2-4 个。这决定首页优先展示什么。</p>
               <div className="grid grid-cols-3 gap-2 mt-4">
                 {allDomains.map((d) => {
@@ -86,13 +86,13 @@ export default function Onboarding() {
 
           {step === 2 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-100">Step 3 · 六大资本初步自评</h2>
+              <h2 className="text-lg font-semibold text-zinc-800">Step 3 · 六大资本初步自评</h2>
               <p className="text-muted text-sm mt-1">0–100。这只是自我追踪的起点，不是对你价值的评分。</p>
               <div className="mt-4 space-y-3">
                 {(Object.keys(CAPITAL_META) as CapitalKey[]).map((k) => (
                   <div key={k}>
                     <div className="flex justify-between text-sm">
-                      <span className="text-zinc-200">{CAPITAL_META[k].name}</span>
+                      <span className="text-zinc-700">{CAPITAL_META[k].name}</span>
                       <span className="text-accent font-mono">{ratings[k]}</span>
                     </div>
                     <div className="text-[11px] text-muted">{CAPITAL_META[k].hint}</div>
@@ -111,13 +111,13 @@ export default function Onboarding() {
 
           {step === 3 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-100">Step 4 · 现在的系统状态</h2>
+              <h2 className="text-lg font-semibold text-zinc-800">Step 4 · 现在的系统状态</h2>
               <p className="text-muted text-sm mt-1">诚实地滑。这决定今天的"发挥率"参考。</p>
               <div className="mt-4 space-y-3">
                 {MENTAL_FIELDS.map((f) => (
                   <div key={f.key}>
                     <div className="flex justify-between text-sm">
-                      <span className="text-zinc-200">{f.label}</span>
+                      <span className="text-zinc-700">{f.label}</span>
                       <span className="text-accent font-mono">{mental[f.key]}</span>
                     </div>
                     <div className="text-[11px] text-muted">{f.hint}</div>
@@ -136,7 +136,7 @@ export default function Onboarding() {
 
           {step === 4 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-100">Step 5 · 写下你的第一条主线</h2>
+              <h2 className="text-lg font-semibold text-zinc-800">Step 5 · 写下你的第一条主线</h2>
               <p className="text-muted text-sm mt-1">一个你愿意持续推进 3 个月以上的目标。例：完成第一个独立产品。</p>
               <input className="input mt-4" placeholder="例：英语达到 B2" value={firstQuest} onChange={(e) => setFirstQuest(e.target.value)} />
               <div className="flex justify-between mt-6">

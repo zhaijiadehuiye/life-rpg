@@ -18,10 +18,10 @@ export default function Settings() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-semibold text-zinc-100">设置</h1>
+      <h1 className="text-xl font-semibold text-zinc-800">设置</h1>
       <section className="card-pad">
         <h2 className="label mb-3">角色</h2>
-        <div className="text-sm text-zinc-200">{s.profile?.name}</div>
+        <div className="text-sm text-zinc-700">{s.profile?.name}</div>
         <div className="text-xs text-muted mt-1">Lv.{s.profile?.level} · 累计 {s.profile?.totalXp} XP · 创建于 {s.profile?.createdAt}</div>
       </section>
 
@@ -31,7 +31,7 @@ export default function Settings() {
         <div className="space-y-3">
           {s.domains.map((d) => (
             <div key={d.key}>
-              <div className="text-sm text-zinc-200">{d.name}</div>
+              <div className="text-sm text-zinc-700">{d.name}</div>
               <div className="grid grid-cols-3 gap-3 mt-1.5">
                 <DomainSlider label="重要" value={d.importance} onChange={(v) => s.updateDomain(d.key, { importance: v })} />
                 <DomainSlider label="满意" value={d.satisfaction} onChange={(v) => s.updateDomain(d.key, { satisfaction: v })} />

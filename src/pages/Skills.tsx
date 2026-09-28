@@ -23,7 +23,7 @@ export default function Skills() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-zinc-100">技能树</h1>
+        <h1 className="text-xl font-semibold text-zinc-800">技能树</h1>
         <button className="btn-primary" onClick={() => setOpen(true)}><Plus size={14} /> 新技能</button>
       </div>
 
@@ -35,7 +35,7 @@ export default function Skills() {
             {cat.items.map((sk) => (
               <div key={sk.id} className="card p-3">
                 <div className="flex justify-between items-baseline">
-                  <div className="text-sm text-zinc-100">{sk.name}</div>
+                  <div className="text-sm text-zinc-800">{sk.name}</div>
                   <div className="text-xs text-accent font-mono">Lv.{sk.level}</div>
                 </div>
                 <div className="mt-2"><XpBar value={sk.xp} max={sk.xpToNext} height={4} /></div>

@@ -19,11 +19,11 @@ pnpm preview        # 本地预览构建产物
 
 ## 在线使用
 
-主分支会自动构建并发布到 GitHub Pages：
+公开站点（无需登录）：
 
-**https://zhaijiadehuiye.github.io/life-rpg/**
+**https://life-rpg.tzxbss.chatgpt.site**
 
-部署工作流位于 `.github/workflows/deploy-pages.yml`。它使用 GitHub Actions 构建 `dist/`，再发布到 Pages；应用使用相对资源路径和 HashRouter，因此可以直接在项目子路径刷新和离线打开。
+项目同时保留 `.github/workflows/deploy-pages.yml`，方便在仓库设置启用 GitHub Pages 后继续使用 GitHub 原生发布。生产构建使用相对资源路径和 HashRouter，可在静态子路径刷新和离线打开。
 
 ---
 

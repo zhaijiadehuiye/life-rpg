@@ -20,7 +20,8 @@
 - PWA manifest、service worker、离线缓存、PNG 安装图标和 mobile standalone 支持。
 - Supabase `SyncStore` 数据层边界已预留。
 - CI/本地质量门禁：typecheck、lint、test、build 均已配置并通过。
-- GitHub Pages 发布工作流已配置，主分支会自动发布到 https://zhaijiadehuiye.github.io/life-rpg/。
+- GitHub Pages 发布工作流已配置，启用仓库 Pages 后可自动发布到项目子路径。
+- 当前公开站点已发布到 https://life-rpg.tzxbss.chatgpt.site/，访问无需登录。
 
 ## 下一阶段
 

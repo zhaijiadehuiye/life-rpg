@@ -23,6 +23,7 @@
 - GitHub Pages 发布工作流已配置，启用仓库 Pages 后可自动发布到项目子路径。
 - 当前公开站点已发布到 https://life-rpg.tzxbss.chatgpt.site/，访问无需登录。
 - 已修复浅色主题下首页和主要页面文字对比度过低的问题。
+- PWA shell cache 已升级到 `shell-3`，刷新时会清理旧版首页缓存。
 
 ## 下一阶段
 

@@ -4,6 +4,7 @@
 
 ## 近期部署
 
+- PWA shell cache 升级到 `shell-3`，确保旧版首页缓存会自动失效并加载最新文字样式。
 - 修复浅色主题下首页引导、标题和任务文字使用浅色字导致的低对比度问题。
 - GitHub Pages 已接入自动发布工作流，主分支构建通过后会更新公开站点。
 - 当前公开地址：https://life-rpg.tzxbss.chatgpt.site/

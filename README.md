@@ -17,6 +17,14 @@ pnpm preview        # 本地预览构建产物
 
 > 依赖：Node.js ≥ 18。首次启动选择「先看 Demo 角色」即可立刻看到完整效果。
 
+## 在线使用
+
+主分支会自动构建并发布到 GitHub Pages：
+
+**https://zhaijiadehuiye.github.io/life-rpg/**
+
+部署工作流位于 `.github/workflows/deploy-pages.yml`。它使用 GitHub Actions 构建 `dist/`，再发布到 Pages；应用使用相对资源路径和 HashRouter，因此可以直接在项目子路径刷新和离线打开。
+
 ---
 
 ## 技术栈

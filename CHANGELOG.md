@@ -2,6 +2,11 @@
 
 本项目遵循语义化版本，commit message 以 `vX.Y.Z:` 开头。
 
+## 近期部署
+
+- GitHub Pages 已接入自动发布工作流，主分支构建通过后会更新公开站点。
+- 公开地址：https://zhaijiadehuiye.github.io/life-rpg/
+
 ## v0.5.0
 
 从展示型 Dashboard 推进到每日可执行的生活操作闭环：

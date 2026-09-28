@@ -56,7 +56,7 @@ export default function Settings() {
           </button>
         </div>
         {importMsg && <div className="text-xs text-muted mt-2">{importMsg}</div>}
-        <p className="text-[11px] text-muted mt-3">数据存储：浏览器 localStorage（key = life-rpg:v1）。未来可无缝迁移到 IndexedDB / Supabase。</p>
+        <p className="text-[11px] text-muted mt-3">数据存储：浏览器 localStorage（key = life-rpg:v1，存档 schema v2）。未来可无缝迁移到 IndexedDB / Supabase。</p>
       </section>
     </div>
   )

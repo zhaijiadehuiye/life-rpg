@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useGameStore } from '../store/useGameStore'
-import { lastNDays, todayKey, formatChineseDate } from '../utils/date'
+import { lastNDays, dateKeyFromTimestamp, formatChineseDate } from '../utils/date'
 
 export default function Stats() {
   const s = useGameStore()
@@ -16,17 +16,17 @@ export default function Stats() {
         s.sideQuests.filter((q) => q.completedAt === d).length
     }
     return map
-  }, [s.dailyQuests, s.sideQuests])
+  }, [s.dailyQuests, s.sideQuests, last7])
 
   const xp30 = useMemo(() => {
     const map: Record<string, number> = {}
     for (const d of last30) map[d] = 0
     for (const t of s.transactions) {
-      const day = t.timestamp.slice(0, 10)
+      const day = dateKeyFromTimestamp(t.timestamp)
       if (day in map && t.kind === 'character') map[day] += t.amount
     }
     return map
-  }, [s.transactions])
+  }, [s.transactions, last30])
 
   const maxXp = Math.max(1, ...Object.values(xp30))
   const maxTasks = Math.max(1, ...Object.values(tasksByDay))
@@ -36,6 +36,8 @@ export default function Stats() {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-zinc-800">统计</h1>
+
+      <WeeklyReport />
 
       <section className="card-pad">
         <h2 className="label mb-3">最近 7 天完成任务数</h2>
@@ -115,3 +117,18 @@ export default function Stats() {
     </div>
   )
 }
+
+function WeeklyReport() {
+  const s = useGameStore()
+  const days = lastNDays(7)
+  const xp = days.map((day) => s.transactions.filter((transaction) => dateKeyFromTimestamp(transaction.timestamp) === day && transaction.kind === 'character').reduce((sum, transaction) => sum + transaction.amount, 0))
+  const sleepValues = days.map((day) => s.checkIns?.[day]?.sleep).filter((value): value is number => typeof value === 'number')
+  const avgSleep = sleepValues.length ? (sleepValues.reduce((sum, value) => sum + value, 0) / sleepValues.length).toFixed(1) : '—'
+  const rates = days.map((day) => s.settlements?.find((item) => item.date === day)?.completionRate ?? 0)
+  const avgRate = Math.round(rates.reduce((sum, value) => sum + value, 0) / rates.length)
+  const mainlineSteps = s.mainQuests.reduce((sum, quest) => sum + quest.milestones.filter((milestone) => milestone.completedAt && days.includes(milestone.completedAt)).length, 0)
+  const maxXp = Math.max(1, ...xp)
+  return <section className="card-pad"><div className="flex items-start justify-between"><div><h2 className="label">最近 7 天 · 周报</h2><p className="text-xs text-muted mt-1">用趋势回看节奏，不用单日表现评判自己。</p></div><div className="text-right"><div className="text-2xl font-bold text-zinc-900">{xp.reduce((sum, value) => sum + value, 0)}</div><div className="text-[11px] text-muted">总 XP</div></div></div><div className="flex items-end gap-2 h-28 mt-5">{xp.map((value, index) => <div key={days[index]} className="flex-1 flex flex-col items-center gap-1"><div className="text-[10px] font-mono text-muted">{value}</div><div className="w-full rounded-t bg-accent/70" style={{ height: `${Math.max(4, (value / maxXp) * 100)}%` }} /><div className="text-[9px] text-muted">{days[index].slice(5)}</div></div>)}</div><div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 text-center"><SmallStat label="平均完成率" value={`${avgRate}%`} /><SmallStat label="平均睡眠" value={`${avgSleep} h`} /><SmallStat label="主线推进" value={`${mainlineSteps} 步`} /><SmallStat label="Check-in" value={`${sleepValues.length} 天`} /></div></section>
+}
+
+function SmallStat({ label, value }: { label: string; value: string }) { return <div className="rounded-xl bg-ink-800 p-3"><div className="text-lg font-bold text-zinc-900">{value}</div><div className="text-[11px] text-muted mt-0.5">{label}</div></div> }

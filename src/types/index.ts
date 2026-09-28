@@ -161,6 +161,57 @@ export interface XPTransaction {
   targetKey?: string
 }
 
+export interface DailyCheckIn {
+  date: string
+  sleep: number
+  energy: number
+  focus: number
+  mood: number
+  stress: number
+  selfEfficacy: number
+  note: string
+  createdAt: string
+}
+
+export type DailyActionStatus = 'available' | 'completed'
+
+export interface DailyAction {
+  id: string
+  date: string
+  title: string
+  description: string
+  xpReward: number
+  capitalKey?: CapitalKey
+  skillId?: string
+  minutes?: number
+  mainQuestId?: string
+  milestoneId?: string
+  status: DailyActionStatus
+  source: 'rule'
+}
+
+export interface ActionLog {
+  id: string
+  date: string
+  text: string
+  xp: number
+  capitalKey?: CapitalKey
+  capitalXp?: number
+  skillId?: string
+  skillXp?: number
+  createdAt: string
+}
+
+export interface DailySettlement {
+  date: string
+  completionRate: number
+  xpEarned: number
+  capitalXp: number
+  skillXp: number
+  mainlineProgress: number
+  createdAt: string
+}
+
 export interface MapNode {
   id: string
   title: string
@@ -186,4 +237,9 @@ export interface GameState {
   achievements: Achievement[]
   transactions: XPTransaction[]
   mapNodes: MapNode[]
+  /** Added in schema v2; optional keeps old demo/import payloads readable. */
+  checkIns?: Record<string, DailyCheckIn>
+  dailyActions?: DailyAction[]
+  actionLogs?: ActionLog[]
+  settlements?: DailySettlement[]
 }

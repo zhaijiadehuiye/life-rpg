@@ -17,13 +17,14 @@ import type {
   SideQuest,
   Skill,
   StatusEffect,
+  ActionLog,
+  DailyCheckIn,
 } from '../types'
 import { uuid } from '../utils/id'
 
 type MainQuestPatch = Omit<Partial<MainQuest>, 'milestones'> & { milestones?: string[] }
-import { todayKey, diffDays } from '../utils/date'
+import { todayKey, diffDays, dateKeyFromTimestamp } from '../utils/date'
 import {
-  DIFFICULTY_PRESET,
   MAX_DAILY_CHARACTER_XP,
   levelFromTotalXp,
   xpToNextCapitalPoint,
@@ -38,6 +39,7 @@ import {
 } from '../data/constants'
 import { buildDemoState } from '../data/demo'
 import { loadState, saveState, clearState, exportState, parseImport } from '../services/storage'
+import { calculateDailySettlement, generateDailyActions } from '../data/dailyRules'
 
 const emptyMental = (): MentalState => ({
   date: todayKey(),
@@ -65,6 +67,10 @@ const initialState: GameState = {
   achievements: [],
   transactions: [],
   mapNodes: DEFAULT_MAP_NODES,
+  checkIns: {},
+  dailyActions: [],
+  actionLogs: [],
+  settlements: [],
 }
 
 function grantCharacterXp(
@@ -75,7 +81,7 @@ function grantCharacterXp(
   if (!state.profile) return { profile: state.profile, transactions: state.transactions }
   const today = todayKey()
   const todayGain = state.transactions
-    .filter((t) => t.kind === 'character' && t.timestamp.startsWith(today))
+    .filter((t) => t.kind === 'character' && dateKeyFromTimestamp(t.timestamp) === today)
     .reduce((s, t) => s + t.amount, 0)
   const allowed = Math.max(0, MAX_DAILY_CHARACTER_XP - todayGain)
   const granted = Math.min(amount, allowed)
@@ -144,6 +150,9 @@ interface StoreActions {
     firstMainQuestTitle: string
   }) => void
   updateMental: (key: MentalKey, value: number) => void
+  saveCheckIn: (checkIn: Omit<DailyCheckIn, 'createdAt'>) => void
+  completeDailyAction: (id: string) => void
+  settleToday: () => void
   addSideQuest: (q: Omit<SideQuest, 'id' | 'kind' | 'completed' | 'createdAt'>) => void
   addDailyQuest: (q: Omit<DailyQuest, 'id' | 'kind' | 'lastCompletedDate' | 'createdAt'>) => void
   addMainQuest: (q: Omit<MainQuest, 'id' | 'kind' | 'milestones' | 'status' | 'createdAt'> & { milestones: string[] }) => void
@@ -261,6 +270,52 @@ export const useGameStore = create<GameStore>((set, get) => ({
     persistAfter(get)
   },
 
+  saveCheckIn: (checkIn) => {
+    const current = get()
+    const full: DailyCheckIn = { ...checkIn, createdAt: new Date().toISOString() }
+    const generated = generateDailyActions(current, full)
+    const previous = current.dailyActions ?? []
+    const dailyActions = generated.map((action) => {
+      const old = previous.find((item) => item.id === action.id && item.date === action.date)
+      const sameTarget = old?.mainQuestId === action.mainQuestId && old?.milestoneId === action.milestoneId
+      return old?.status === 'completed' && sameTarget ? { ...action, status: 'completed' as const } : action
+    })
+    const nextState: GameState = { ...current, checkIns: { ...(current.checkIns ?? {}), [full.date]: full }, mental: { date: full.date, energy: full.energy, focus: full.focus, stress: full.stress, mood: full.mood, selfEfficacy: full.selfEfficacy, socialBattery: current.mental.socialBattery }, dailyActions, effects: deriveEffects({ ...current.mental, date: full.date, energy: full.energy, focus: full.focus, stress: full.stress, mood: full.mood, selfEfficacy: full.selfEfficacy }, current.profile?.streak ?? 0, daysSinceLastMainProgress(current)) }
+    set(nextState)
+    persistAfter(get)
+  },
+
+  completeDailyAction: (id) => {
+    const action = get().dailyActions?.find((item) => item.id === id)
+    if (!action || action.status === 'completed') return
+    set((s) => ({
+      dailyActions: (s.dailyActions ?? []).map((item) => item.id === id ? { ...item, status: 'completed' as const } : item),
+      mainQuests: action.mainQuestId && action.milestoneId
+        ? s.mainQuests.map((quest) => {
+            if (quest.id !== action.mainQuestId) return quest
+            const milestones = quest.milestones.map((milestone) => milestone.id === action.milestoneId
+              ? { ...milestone, completed: true, completedAt: todayKey() }
+              : milestone)
+            const complete = milestones.every((milestone) => milestone.completed)
+            return { ...quest, milestones, status: complete ? 'completed' as const : 'active' as const, completedAt: complete ? todayKey() : undefined }
+          })
+        : s.mainQuests,
+    }))
+    applyRewards(set, get, { characterXp: action.xpReward, capitalKey: action.capitalKey, skillId: action.skillId, minutes: action.minutes ?? 0, source: `今日行动：${action.title}` })
+    bumpStreakAndAchievements(set)
+    const capitalXp = action.capitalKey ? Math.round(action.xpReward * 0.4) : 0
+    const skillXp = action.skillId ? Math.round(action.xpReward * 0.8) : 0
+    const log: ActionLog = { id: uuid(), date: action.date, text: action.title, xp: action.xpReward, capitalKey: action.capitalKey, capitalXp, skillId: action.skillId, skillXp, createdAt: new Date().toISOString() }
+    set((s) => ({ actionLogs: [...(s.actionLogs ?? []), log] }))
+    persistAfter(get)
+  },
+
+  settleToday: () => {
+    const summary = calculateDailySettlement(get())
+    set((s) => ({ settlements: [summary, ...(s.settlements ?? []).filter((item) => item.date !== summary.date)] }))
+    persistAfter(get)
+  },
+
   addSideQuest: (q) => {
     const item: SideQuest = { ...q, id: uuid(), kind: 'side', completed: false, createdAt: new Date().toISOString() }
     set((s) => ({ sideQuests: [...s.sideQuests, item] }))
@@ -347,7 +402,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       minutes: q.minutes ?? 0,
       source: q.title,
     })
-    bumpStreakAndAchievements(set, get)
+    bumpStreakAndAchievements(set)
     persistAfter(get)
   },
 
@@ -366,7 +421,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       minutes: q.minutes ?? 0,
       source: `日常：${q.title}`,
     })
-    bumpStreakAndAchievements(set, get)
+    bumpStreakAndAchievements(set)
     persistAfter(get)
   },
 
@@ -483,17 +538,22 @@ function applyRewards(set: SetFn, get: () => GameStore, r: RewardInput) {
     const next: Partial<GameStore> = {}
     const c = grantCharacterXp(s, r.characterXp, r.source)
     next.profile = c.profile
-    next.transactions = c.transactions
+    const transactions = [...c.transactions]
     if (r.capitalKey) {
+      const amount = Math.round(r.characterXp * 0.4)
       next.capitals = s.capitals.map((cap) =>
-        cap.key === r.capitalKey ? grantCapitalXp(cap, Math.round(r.characterXp * 0.4)) : cap,
+        cap.key === r.capitalKey ? grantCapitalXp(cap, amount) : cap,
       )
+      transactions.push({ id: uuid(), amount, source: r.source, timestamp: new Date().toISOString(), kind: 'capital' as const, targetKey: r.capitalKey })
     }
     if (r.skillId) {
+      const amount = Math.round(r.characterXp * 0.8)
       next.skills = s.skills.map((sk) =>
-        sk.id === r.skillId ? grantSkillXp(sk, Math.round(r.characterXp * 0.8), r.minutes ?? 0) : sk,
+        sk.id === r.skillId ? grantSkillXp(sk, amount, r.minutes ?? 0) : sk,
       )
+      transactions.push({ id: uuid(), amount, source: r.source, timestamp: new Date().toISOString(), kind: 'skill' as const, targetKey: r.skillId })
     }
+    next.transactions = transactions
     return next
   })
   set((s) => {
@@ -513,7 +573,7 @@ function applyRewards(set: SetFn, get: () => GameStore, r: RewardInput) {
   })
 }
 
-function bumpStreakAndAchievements(set: SetFn, get: () => GameStore) {
+function bumpStreakAndAchievements(set: SetFn) {
   set((s) => {
     if (!s.profile) return {}
     const today = todayKey()

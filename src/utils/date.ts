@@ -5,6 +5,11 @@ export function todayKey(d: Date = new Date()): string {
   return `${y}-${m}-${day}`
 }
 
+export function dateKeyFromTimestamp(timestamp: string): string {
+  const parsed = new Date(timestamp)
+  return Number.isNaN(parsed.getTime()) ? timestamp.slice(0, 10) : todayKey(parsed)
+}
+
 export function parseKey(key: string): Date {
   const [y, m, d] = key.split('-').map(Number)
   return new Date(y, m - 1, d)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useGameStore } from '../store/useGameStore'
-import { todayKey, formatChineseDate } from '../utils/date'
+import { todayKey, dateKeyFromTimestamp, formatChineseDate } from '../utils/date'
 
 const FIELDS = [
   { key: 'whatHappened', label: '今天发生了什么？', placeholder: '几句话记录今天…' },
@@ -27,7 +27,7 @@ export default function Journal() {
       s.dailyQuests.filter((d) => d.lastCompletedDate === today).length +
       s.sideQuests.filter((q) => q.completedAt === today).length
     const xpToday = s.transactions
-      .filter((t) => t.timestamp.startsWith(today) && t.kind === 'character')
+      .filter((t) => dateKeyFromTimestamp(t.timestamp) === today && t.kind === 'character')
       .reduce((a, t) => a + t.amount, 0)
     s.writeLog({ ...form, tasksCompleted: doneToday, xpEarned: xpToday })
   }

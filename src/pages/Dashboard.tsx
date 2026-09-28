@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
-import { Check, Plus, Flame, Zap } from 'lucide-react'
+import { Check, Plus, Flame, Zap, CalendarCheck, Target, Save, TrendingUp } from 'lucide-react'
 import { useGameStore } from '../store/useGameStore'
 import { computePerformance } from '../utils/performance'
 import { levelFromTotalXp } from '../utils/xp'
-import { todayKey, formatChineseDate } from '../utils/date'
+import { todayKey, dateKeyFromTimestamp, formatChineseDate } from '../utils/date'
 import { XpBar, Meter } from '../components/XpBar'
 import { Icon } from '../components/Icon'
 import { AddQuestModal } from '../components/AddQuestModal'
+import { calculateDailySettlement, CAPITAL_LABELS } from '../data/dailyRules'
+import type { Capital, CapitalKey, DailyCheckIn } from '../types'
 
 const MENTAL_LABEL: { key: 'energy' | 'focus' | 'stress' | 'mood' | 'selfEfficacy' | 'socialBattery'; label: string; color: string }[] = [
   { key: 'energy', label: '精力', color: 'bg-accent' },
@@ -30,7 +32,7 @@ export default function Dashboard() {
   const todayTasks = [...openDailies.map((q) => ({ kind: 'daily' as const, q })), ...openSides.map((q) => ({ kind: 'side' as const, q }))].slice(0, 5)
 
   const todayLog = s.logs.find((l) => l.date === today)
-  const todayTx = s.transactions.filter((t) => t.timestamp.startsWith(today))
+  const todayTx = s.transactions.filter((t) => dateKeyFromTimestamp(t.timestamp) === today)
   const todayXp = todayTx.filter((t) => t.kind === 'character').reduce((sum, t) => sum + t.amount, 0)
   const todayCapitalXp = todayTx.filter((t) => t.kind === 'capital').reduce((sum, t) => sum + t.amount, 0)
   const todaySkillXp = todayTx.filter((t) => t.kind === 'skill').reduce((sum, t) => sum + t.amount, 0)
@@ -72,6 +74,8 @@ export default function Dashboard() {
           等级永不下降。今天获得 {todayXp} XP。
         </div>
       </div>
+
+      <CheckInCard />
 
       <section className="card-pad rise" style={{ animationDelay: '120ms' }}>
         <div className="flex items-center justify-between mb-3">
@@ -144,7 +148,7 @@ export default function Dashboard() {
           )}
           {todayTasks.map(({ kind, q }) => {
             const isDaily = kind === 'daily'
-            const done = isDaily ? (q as any).lastCompletedDate === today : (q as any).completed
+            const done = q.kind === 'daily' ? q.lastCompletedDate === today : q.completed
             return (
               <div key={q.id} className="card p-3.5 flex items-center gap-3">
                 <button
@@ -160,7 +164,7 @@ export default function Dashboard() {
                   <div className={`text-sm ${done ? 'line-through text-muted' : 'text-zinc-800'}`}>{q.title}</div>
                   <div className="text-[11px] text-muted mt-0.5">
                     {isDaily ? '日常' : '支线'} · +{q.xpReward} XP
-                    {'capitalKey' in q && q.capitalKey ? ` · ${capitalLabel(q.capitalKey, s)}` : ''}
+                    {'capitalKey' in q && q.capitalKey ? ` · ${capitalLabel(q.capitalKey, s.capitals)}` : ''}
                   </div>
                 </div>
                 {!isDaily && !done && (
@@ -173,6 +177,8 @@ export default function Dashboard() {
           })}
         </div>
       </section>
+
+      <DailyActionsCard />
 
       <section className="rise" style={{ animationDelay: '300ms' }}>
         <h2 className="label mb-2.5">当前主线</h2>
@@ -201,19 +207,35 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section className="card-pad rise" style={{ animationDelay: '360ms' }}>
-        <h2 className="label mb-4">今日结算</h2>
-        <div className="grid grid-cols-4 gap-3 text-center">
-          <Stat label="完成任务" value={todayLog?.tasksCompleted ?? todayCompleted} />
-          <Stat label="获得 XP" value={todayXp} />
-          <Stat label="资本 XP" value={todayCapitalXp} />
-          <Stat label="技能 XP" value={todaySkillXp} />
-        </div>
-      </section>
+      <DailySettlementCard fallbackTasks={todayLog?.tasksCompleted ?? todayCompleted} fallbackXp={todayXp} fallbackCapitalXp={todayCapitalXp} fallbackSkillXp={todaySkillXp} />
 
       <AddQuestModal open={showAdd} onClose={() => setShowAdd(false)} />
     </div>
   )
+}
+
+function CheckInCard() {
+  const s = useGameStore()
+  const date = todayKey()
+  const existing = s.checkIns?.[date]
+  const [draft, setDraft] = useState<DailyCheckIn>(() => existing ?? { date, sleep: 7, energy: s.mental.energy, focus: s.mental.focus, mood: s.mental.mood, stress: s.mental.stress, selfEfficacy: s.mental.selfEfficacy, note: '', createdAt: new Date().toISOString() })
+  const fields: { key: keyof Pick<DailyCheckIn, 'sleep' | 'energy' | 'focus' | 'mood' | 'stress' | 'selfEfficacy'>; label: string; max: number; suffix?: string }[] = [
+    { key: 'sleep', label: '睡眠', max: 12, suffix: 'h' }, { key: 'energy', label: '精力', max: 100 }, { key: 'focus', label: '专注', max: 100 }, { key: 'mood', label: '情绪', max: 100 }, { key: 'stress', label: '压力', max: 100 }, { key: 'selfEfficacy', label: '自我效能', max: 100 },
+  ]
+  return <section className="card-pad rise" style={{ animationDelay: '90ms' }}><div className="flex items-start justify-between gap-3"><div><h2 className="label flex items-center gap-2"><CalendarCheck size={14} /> 每日 Check-in</h2><p className="text-xs text-muted mt-1">先看见自己，再决定今天怎么走。</p></div><span className="chip">{existing ? '已记录' : '待记录'}</span></div><div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-4 mt-5">{fields.map((field) => <label key={field.key}><div className="flex justify-between text-xs mb-1.5"><span className="text-zinc-600">{field.label}</span><span className="font-mono text-zinc-800">{draft[field.key]}{field.suffix ?? ''}</span></div><input aria-label={field.label} type="range" min={0} max={field.max} step={field.key === 'sleep' ? 0.5 : 1} value={draft[field.key]} onChange={(event) => setDraft((current) => ({ ...current, [field.key]: Number(event.target.value) }))} className="w-full" /></label>)}</div><div className="flex gap-2 mt-5"><input aria-label="Check-in 备注" className="input" placeholder="此刻最值得被记住的一句话…" value={draft.note} onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))} /><button className="btn-primary shrink-0" onClick={() => s.saveCheckIn({ ...draft, date })}><Save size={14} /> 保存</button></div></section>
+}
+
+function DailyActionsCard() {
+  const s = useGameStore()
+  const actions = (s.dailyActions ?? []).filter((action) => action.date === todayKey())
+  return <section className="card-pad rise" style={{ animationDelay: '210ms' }}><div className="flex items-start justify-between"><div><h2 className="label flex items-center gap-2"><Target size={14} /> 今日 3 个关键行动</h2><p className="text-xs text-muted mt-1">规则引擎根据你今天的状态生成。</p></div><span className="font-mono text-xs text-muted">{actions.filter((action) => action.status === 'completed').length}/{actions.length || 3}</span></div>{actions.length === 0 ? <div className="mt-4 rounded-xl bg-peach/50 p-4 text-sm text-zinc-700">完成上方 Check-in 后，这里会出现今天最值得做的三件事。</div> : <div className="space-y-2 mt-4">{actions.map((action, index) => <div key={action.id} className={`card p-3.5 flex items-center gap-3 ${action.status === 'completed' ? 'bg-mint/40' : ''}`}><button aria-label={`完成 ${action.title}`} disabled={action.status === 'completed'} onClick={() => s.completeDailyAction(action.id)} className={`w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 ${action.status === 'completed' ? 'bg-accent border-accent text-white' : 'border-line text-transparent hover:border-accent'}`}><Check size={14} /></button><div className="flex-1 min-w-0"><div className="flex items-center gap-2"><span className="text-[10px] font-mono text-muted">0{index + 1}</span><span className="chip">{action.capitalKey ? CAPITAL_LABELS[action.capitalKey] : '行动'}</span><span className="text-[11px] text-warn">+{action.xpReward} XP</span></div><div className={`text-sm mt-1 ${action.status === 'completed' ? 'line-through text-muted' : 'text-zinc-800'}`}>{action.title}</div><div className="text-[11px] text-muted mt-0.5 truncate">{action.description}</div></div></div>)}</div>}</section>
+}
+
+function DailySettlementCard({ fallbackTasks, fallbackXp, fallbackCapitalXp, fallbackSkillXp }: { fallbackTasks: number; fallbackXp: number; fallbackCapitalXp: number; fallbackSkillXp: number }) {
+  const s = useGameStore()
+  const summary = calculateDailySettlement(s)
+  const settled = s.settlements?.some((item) => item.date === todayKey())
+  return <section className="card-pad rise" style={{ animationDelay: '360ms' }}><div className="flex items-start justify-between"><div><h2 className="label flex items-center gap-2"><TrendingUp size={14} /> 今日结算</h2><p className="text-xs text-muted mt-1">把今天的行动转成明天可以继续的线索。</p></div><div className="text-right"><div className="text-2xl font-bold text-zinc-900">{summary.completionRate || Math.round((fallbackTasks / Math.max(1, s.dailyQuests.length + s.sideQuests.length)) * 100)}%</div><div className="text-[11px] text-muted">完成率</div></div></div><div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 text-center"><Stat label="完成任务" value={fallbackTasks + (s.dailyActions ?? []).filter((a) => a.date === todayKey() && a.status === 'completed').length} /><Stat label="获得 XP" value={summary.xpEarned || fallbackXp} /><Stat label="资本 XP" value={summary.capitalXp || fallbackCapitalXp} /><Stat label="技能 XP" value={summary.skillXp || fallbackSkillXp} /></div><button className={`w-full mt-5 rounded-full px-4 py-2.5 text-sm font-medium ${settled ? 'bg-mint text-accent-dim' : 'btn-primary'}`} onClick={s.settleToday}>{settled ? '已结算 · 更新结算' : '完成今日结算'}</button></section>
 }
 
 function Stat({ label, value }: { label: string; value: number }) {
@@ -225,7 +247,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   )
 }
 
-function capitalLabel(key: string, s: any): string {
-  const cap = s.capitals.find((c: any) => c.key === key)
+function capitalLabel(key: CapitalKey, capitals: Capital[]): string {
+  const cap = capitals.find((c) => c.key === key)
   return cap?.name ?? key
 }

@@ -1,6 +1,6 @@
 # Life RPG · 人生游戏化操作系统
 
-把现实中的个人成长、资源积累、心理状态和人生目标，转换成 RPG 中的角色属性、资本、Buff/Debuff、主线、支线、经验值与成就。
+把现实中的个人成长、资源积累、心理状态和人生目标，转换成 RPG 中的角色属性、资本、Buff/Debuff、主线、支线、经验值与成就，并形成“每日状态 → 今日行动 → 角色成长 → 每日结算 → 历史趋势”的闭环。
 
 **它不是 Todo List，也不是习惯打卡软件。** 你在现实中完成真正有价值的行动，游戏角色才成长。
 
@@ -47,9 +47,13 @@ src/
 │   └── performance.ts       # ★ 当前发挥率公式
 ├── data/
 │   ├── constants.ts         # 六大资本 / 领域 / 成就 / 地图节点 / 事件池
+│   ├── dailyRules.ts        # Check-in → 三个关键行动 → 每日结算规则
 │   └── demo.ts              # Demo 角色工厂
 ├── services/
-│   └── storage.ts           # ★ 持久化层（localStorage，可替换）
+│   └── storage.ts           # 兼容入口
+├── lib/
+│   ├── storage.ts           # ★ 持久化层与 schema 迁移
+│   └── cloud.ts             # Supabase SyncStore 接口边界
 ├── store/
 │   └── useGameStore.ts      # ★ Zustand 仓库：所有业务动作
 ├── components/              # 通用 UI
@@ -60,10 +64,19 @@ src/
 
 ## 数据存储方式
 
-- 当前实现：**localStorage**，key = `life-rpg:v1`。
-- 持久化层封装在 `src/services/storage.ts`，只暴露 `loadState()` / `saveState(state)`。
-- 每次 store 修改后都会自动保存，刷新不丢。
+- 当前实现：**localStorage**，key = `life-rpg:v1`，存档 payload schema 已升级到 v2。
+- 持久化层封装在 `src/lib/storage.ts`，`src/services/storage.ts` 保留兼容入口，只暴露 `loadState()` / `saveState(state)`。
+- 每次 store 修改后都会自动保存，刷新不丢；v1 存档会在读取和导入时补齐 v2 字段。
 - 「设置」页支持：**导出 JSON 备份**、**导入 JSON 恢复**、**清空数据重新开始**。
+- 首页每日 Check-in 会根据规则生成 3 个关键行动；完成后同时写入角色 XP、资本/技能 XP、streak 和行动日志。
+
+## 每日闭环
+
+Check-in 的六项状态会影响规则引擎选择的行动：睡眠不足或精力低时优先恢复，压力高时先清空压力回路，专注或自我效能低时降低启动门槛，其余时间优先推进主线和积累知识资产。统计页提供最近 7 天 XP、完成率、睡眠与主线推进周报。
+
+## PWA 与同步边界
+
+生产构建包含 manifest、service worker、PNG/SVG 图标和移动端 standalone 配置。Supabase 接入预留在 `src/lib/cloud.ts` 的 `SyncStore` 接口中，当前 localStorage 仍是唯一真实数据源。
 
 ---
 

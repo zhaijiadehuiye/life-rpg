@@ -42,12 +42,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5">
-      <header className="flex items-start justify-between gap-4">
+      <header className="rise flex items-start justify-between gap-4">
         <div>
-          <div className="text-[11px] text-muted">{formatChineseDate(today)}</div>
-          <h1 className="text-2xl font-semibold text-zinc-100 mt-0.5">{s.profile?.name}</h1>
-          <div className="flex items-center gap-3 mt-1 text-sm text-muted">
-            <span className="text-accent font-mono">Lv.{s.profile?.level ?? 1}</span>
+          <div className="text-[11px] text-muted font-mono">{formatChineseDate(today)}</div>
+          <h1 className="text-3xl font-display font-bold text-zinc-50 mt-0.5 tracking-wide">{s.profile?.name}</h1>
+          <div className="flex items-center gap-3 mt-2 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2 py-0.5 font-display font-semibold text-accent shadow-badge animate-pulse-glow">
+              Lv.{s.profile?.level ?? 1}
+            </span>
             <span className="inline-flex items-center gap-1 text-warn">
               <Flame size={13} /> {s.profile?.streak ?? 0} 天连续
             </span>
@@ -58,22 +60,26 @@ export default function Dashboard() {
         </button>
       </header>
 
-      <div className="card-pad">
+      <div className="card-pad rise" style={{ animationDelay: '60ms' }}>
         <div className="flex justify-between text-xs text-muted mb-2">
-          <span>总 XP {s.profile?.totalXp ?? 0}</span>
-          <span className="font-mono">{lv.xpIntoLevel} / {lv.xpToNext}</span>
+          <span className="font-display tracking-wider">总 XP {s.profile?.totalXp ?? 0}</span>
+          <span className="font-mono">
+            {lv.xpIntoLevel} / {lv.xpToNext}
+          </span>
         </div>
         <XpBar value={lv.xpIntoLevel} max={lv.xpToNext} />
-        <div className="mt-2 text-[11px] text-muted/70">等级永不下降。今天获得 {todayXp} XP。</div>
+        <div className="mt-2 text-[11px] text-muted/70">
+          等级永不下降。今天获得 {todayXp} XP。
+        </div>
       </div>
 
-      <section className="card-pad">
+      <section className="card-pad rise" style={{ animationDelay: '120ms' }}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="label">今日状态 · 游戏化参考值，非医学测量</h2>
           <div className="text-right">
             <div className="text-[10px] text-muted">当前发挥率</div>
-            <div className={`font-mono text-lg ${perf.performance >= 60 ? 'text-accent' : perf.performance >= 40 ? 'text-warn' : 'text-danger'}`}>
-              {perf.performance}%
+            <div className={`font-display font-bold text-2xl leading-none ${perf.performance >= 60 ? 'text-accent' : perf.performance >= 40 ? 'text-warn' : 'text-danger'}`}>
+              {perf.performance}<span className="text-sm font-normal">%</span>
             </div>
           </div>
         </div>
@@ -84,8 +90,14 @@ export default function Dashboard() {
                 <span className="text-muted">{f.label}</span>
                 <span className="font-mono text-zinc-200">{s.mental[f.key]}</span>
               </div>
-              <input type="range" min={0} max={100} value={s.mental[f.key]}
-                onChange={(e) => s.updateMental(f.key, Number(e.target.value))} className="w-full" />
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={s.mental[f.key]}
+                onChange={(e) => s.updateMental(f.key, Number(e.target.value))}
+                className="w-full"
+              />
             </div>
           ))}
         </div>
@@ -95,14 +107,21 @@ export default function Dashboard() {
         </p>
       </section>
 
-      <section>
+      <section className="rise" style={{ animationDelay: '180ms' }}>
         <h2 className="label mb-2">当前 Buff / Debuff</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {s.effects.length === 0 && (
-            <div className="col-span-full text-sm text-muted card-pad text-center">暂无状态。调整上方心理状态会自动生成。</div>
+            <div className="col-span-full text-sm text-muted card-pad text-center">
+              暂无状态。调整上方心理状态会自动生成。
+            </div>
           )}
           {s.effects.map((e) => (
-            <div key={e.id} className={`card p-3 flex items-start gap-2.5 ${e.type === 'buff' ? 'border-accent/30' : 'border-danger/30'}`}>
+            <div
+              key={e.id}
+              className={`card p-3 flex items-start gap-2.5 ${
+                e.type === 'buff' ? 'border-accent/30' : 'border-danger/30'
+              }`}
+            >
               <div className={`mt-0.5 ${e.type === 'buff' ? 'text-accent' : 'text-danger'}`}>
                 <Icon name={e.icon} size={18} />
               </div>
@@ -115,11 +134,13 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section>
+      <section className="rise" style={{ animationDelay: '240ms' }}>
         <h2 className="label mb-2">今日任务 · 完成它们来获得成长</h2>
         <div className="space-y-2">
           {todayTasks.length === 0 && (
-            <div className="card-pad text-sm text-muted text-center">今天没有待办任务。点击右上角"新任务"加一个。</div>
+            <div className="card-pad text-sm text-muted text-center">
+              今天没有待办任务。点击右上角"新任务"加一个。
+            </div>
           )}
           {todayTasks.map(({ kind, q }) => {
             const isDaily = kind === 'daily'
@@ -129,7 +150,9 @@ export default function Dashboard() {
                 <button
                   onClick={() => (isDaily ? s.completeDailyQuest(q.id) : s.completeSideQuest(q.id))}
                   disabled={done}
-                  className={`w-6 h-6 rounded-md border flex items-center justify-center shrink-0 transition-colors ${done ? 'bg-accent border-accent text-ink-950' : 'border-line hover:border-accent text-transparent'}`}
+                  className={`w-6 h-6 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                    done ? 'bg-accent border-accent text-ink-950' : 'border-line hover:border-accent text-transparent'
+                  }`}
                 >
                   <Check size={14} />
                 </button>
@@ -141,7 +164,9 @@ export default function Dashboard() {
                   </div>
                 </div>
                 {!isDaily && !done && (
-                  <button onClick={() => s.skipSideQuest(q.id)} className="text-muted hover:text-danger text-xs">跳过</button>
+                  <button onClick={() => s.skipSideQuest(q.id)} className="text-muted hover:text-danger text-xs">
+                    跳过
+                  </button>
                 )}
               </div>
             )
@@ -149,7 +174,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section>
+      <section className="rise" style={{ animationDelay: '300ms' }}>
         <h2 className="label mb-2">当前主线</h2>
         <div className="space-y-2">
           {activeMains.length === 0 && (
@@ -163,16 +188,20 @@ export default function Dashboard() {
               <div key={m.id} className="card-pad">
                 <div className="flex justify-between items-baseline">
                   <div className="text-sm text-zinc-100">{m.title}</div>
-                  <div className="text-[11px] font-mono text-muted">{done}/{total}</div>
+                  <div className="text-[11px] font-mono text-muted">
+                    {done}/{total}
+                  </div>
                 </div>
-                <div className="mt-2"><Meter value={pct} tone="gold" /></div>
+                <div className="mt-2">
+                  <Meter value={pct} tone="gold" />
+                </div>
               </div>
             )
           })}
         </div>
       </section>
 
-      <section className="card-pad">
+      <section className="card-pad rise" style={{ animationDelay: '360ms' }}>
         <h2 className="label mb-3">今日结算</h2>
         <div className="grid grid-cols-4 gap-3 text-center">
           <Stat label="完成任务" value={todayLog?.tasksCompleted ?? todayCompleted} />
@@ -190,7 +219,7 @@ export default function Dashboard() {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <div className="text-xl font-mono text-zinc-100">{value}</div>
+      <div className="text-2xl font-display font-bold text-zinc-50">{value}</div>
       <div className="text-[11px] text-muted mt-0.5">{label}</div>
     </div>
   )

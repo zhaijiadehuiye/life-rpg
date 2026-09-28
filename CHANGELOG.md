@@ -7,6 +7,7 @@
 - GitHub Pages 已接入自动发布工作流，主分支构建通过后会更新公开站点。
 - 当前公开地址：https://life-rpg.tzxbss.chatgpt.site/
 - `.openai/hosting.json` 已记录站点身份和 `dist` 静态产物目录，后续构建可持续发布。
+- GitHub Actions 质量门禁统一使用 Node 24，远程 typecheck、lint、test、build 已通过。
 
 ## v0.5.0
 

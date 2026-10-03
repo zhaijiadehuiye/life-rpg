@@ -38,6 +38,11 @@ jobs:
       - name: Build production site
         run: pnpm build
 
+      - name: Include Personal Historian
+        run: |
+          mkdir -p dist/personal-historian
+          cp personal-historian/index.html personal-historian/styles.css personal-historian/app.js personal-historian/favicon.svg dist/personal-historian/
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:

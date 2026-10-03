@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#15253b" />
+    <meta name="description" content="Personal Historian · 自我历史学：用长期证据研究自己。" />
+    <title>Personal Historian · 自我历史学</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true">PH</div>
+          <div>
+            <div class="brand-title">Personal Historian</div>
+            <div class="brand-subtitle">自我历史学</div>
+          </div>
+        </div>
+
+        <div class="privacy-pill"><span class="privacy-dot"></span>本地私密空间</div>
+
+        <nav class="main-nav" id="main-nav" aria-label="主要导航">
+          <div class="nav-section-label">RESEARCH</div>
+          <button class="nav-item active" data-view="today"><span class="nav-icon">▣</span><span>Today</span><span class="nav-count" id="nav-today-count">0</span></button>
+          <button class="nav-item" data-view="timeline"><span class="nav-icon">◷</span><span>Timeline</span></button>
+          <button class="nav-item" data-view="patterns"><span class="nav-icon">⌁</span><span>Patterns</span></button>
+          <button class="nav-item" data-view="hypotheses"><span class="nav-icon">H</span><span>Hypotheses</span><span class="nav-count" id="nav-hypothesis-count">0</span></button>
+          <button class="nav-item" data-view="experiments"><span class="nav-icon">◇</span><span>Experiments</span><span class="nav-count" id="nav-experiment-count">0</span></button>
+          <button class="nav-item" data-view="predictions"><span class="nav-icon">%</span><span>Predictions</span></button>
+          <button class="nav-item" data-view="reviews"><span class="nav-icon">≡</span><span>Reviews</span></button>
+          <div class="nav-section-label nav-section-label--lower">LIBRARY</div>
+          <button class="nav-item" data-view="archive"><span class="nav-icon">□</span><span>Archive</span></button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="research-principle">
+            <div class="principle-label">RESEARCH PRINCIPLE</div>
+            <p>不要给自己写传记。<br /><strong>研究自己。</strong></p>
+          </div>
+          <button class="sidebar-reset" id="reset-demo"><span>↺</span>恢复演示研究样本</button>
+          <div class="sidebar-footnote">Append-only workspace · v0.1</div>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <button class="mobile-menu" id="mobile-menu" aria-label="打开导航">☰</button>
+          <div class="breadcrumb" id="breadcrumb"><span class="breadcrumb-root">RESEARCH</span><span class="breadcrumb-separator">/</span><span id="breadcrumb-current">TODAY</span></div>
+          <div class="topbar-actions">
+            <span class="save-indicator" id="save-indicator"><span class="save-dot"></span>已保存到本机</span>
+            <button class="topbar-button" id="quick-export" title="导出全部数据">↥ <span>导出</span></button>
+            <button class="topbar-avatar" aria-label="私密账户">YU</button>
+          </div>
+        </header>
+        <div id="app-root" class="app-root"></div>
+      </main>
+    </div>
+
+    <dialog id="app-dialog" class="app-dialog">
+      <div class="dialog-inner" id="dialog-inner"></div>
+    </dialog>
+    <input type="file" id="import-file" accept="application/json,.json" hidden />
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>

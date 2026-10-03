@@ -23,7 +23,15 @@ pnpm preview        # 本地预览构建产物
 
 **https://life-rpg.tzxbss.chatgpt.site**
 
-项目同时保留 `.github/workflows/deploy-pages.yml`，方便在仓库设置启用 GitHub Pages 后继续使用 GitHub 原生发布。生产构建使用相对资源路径和 HashRouter，可在静态子路径刷新和离线打开。
+GitHub Pages：
+
+**https://zhaijiadehuiye.github.io/life-rpg/**
+
+Personal Historian / 自我历史学的 GitHub Pages：
+
+**https://zhaijiadehuiye.github.io/life-rpg/personal-historian/**
+
+Personal Historian 源码位于 `personal-historian/`，由同一个 Pages 工作流一起发布。项目同时保留 `.github/workflows/deploy-pages.yml`，方便在仓库设置启用 GitHub Pages 后继续使用 GitHub 原生发布。生产构建使用相对资源路径和 HashRouter，可在静态子路径刷新和离线打开。
 
 ---
 
@@ -104,8 +112,6 @@ performance = energy*0.25 + focus*0.25 + mood*0.15
 ```
 
 UI 明确标注"游戏化参考值，非医学/心理学测量"。调权重只改 `WEIGHTS`。
-
----
 
 ## 如何扩展
 

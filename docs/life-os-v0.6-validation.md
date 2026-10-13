@@ -52,3 +52,7 @@
 iframe 暂时带来独立滚动、独立内层导航和离开模块后未保存草稿丢失。不同域数据必须用户显式导出/导入；没有自动数据合并。现有 Historian 的整库替换导入、多标签页冲突、存储失败反馈与读取失败路径仍需下一阶段可靠性改进，详见[数据适配设计](life-os-v0.6-design.md)。
 
 本次验证为 Chromium 桌面/移动视口，并非真实 iOS Safari 或 Android PWA 安装验收。首次离线安装、浏览器主动清理站点数据、系统存储配额耗尽不保证恢复，仍需 JSON 备份。没有实施第二阶段迁移，没有确认线上部署，也不会自动合并 PR。
+
+## GitHub Pages pull request preview
+
+The Pages workflow now builds current `main` separately, adds the PR artifact under `/previews/pr-<number>/`, and deploys the main artifact and preview together. The production root stays at the same main commit; preview paths have their own relative URLs and service-worker scope. Closing the PR rebuilds and publishes main alone, removing the preview. PR build artifacts expire after 3 days and are not used as long-lived user storage. The workflow deployment itself is validated by the live preview run attached to this PR; local browser acceptance above validates both project-base and domain-root serving.

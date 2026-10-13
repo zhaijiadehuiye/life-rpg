@@ -149,3 +149,5 @@ UI 明确标注"游戏化参考值，非医学/心理学测量"。调权重只�
 - 状态差时文案是"系统处于高负载，建议降低任务复杂度"，不出现"失败/懒惰/落后"。
 - 等级永不下降；断签只暂停 streak，保留 longestStreak。
 - 所有资本值都标注"自我追踪工具，不是人的价值评分"。
+
+Pull request previews are published under `/previews/pr-<number>/` after the Pages workflow completes. They use an isolated service-worker scope; the workflow rebuilds the current `main` root unchanged and removes the preview when its pull request closes. The branch preview is public and uses the same GitHub Pages origin as the production app, so the browser's existing app storage is shared.

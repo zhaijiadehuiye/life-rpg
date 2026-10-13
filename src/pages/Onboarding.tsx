@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useGameStore } from '../store/useGameStore'
 import { CAPITAL_META } from '../data/constants'
 import type { CapitalKey, MentalState } from '../types'
@@ -37,10 +38,15 @@ export default function Onboarding() {
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-xl">
         <div className="text-center mb-8">
-          <div className="font-mono text-accent tracking-[0.3em] text-sm">LIFE RPG</div>
+          <div className="font-mono text-accent tracking-[0.3em] text-sm">LIFE OS</div>
           <h1 className="text-2xl sm:text-3xl font-semibold mt-2 text-zinc-800">把现实成长，养成一个长期角色</h1>
           <p className="text-muted text-sm mt-2">这不是 Todo List。你在现实里做的每一件有价值的事，都会塑造这个角色。</p>
         </div>
+
+        <Link to="/historian" className="card-pad block mb-6 text-sm hover:border-accent/40">
+          <span className="font-semibold text-accent">直接进入自我历史学 →</span>
+          <span className="block text-muted mt-1">记录原文、研究长期证据，无需先创建 RPG 角色。</span>
+        </Link>
 
         <div className="flex gap-1.5 mb-6">
           {Array.from({ length: 5 }).map((_, i) => (

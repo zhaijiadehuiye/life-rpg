@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Check, Plus, Flame, Zap, CalendarCheck, Target, Save, TrendingUp } from 'lucide-react'
 import { useGameStore } from '../store/useGameStore'
 import { computePerformance } from '../utils/performance'
@@ -74,6 +75,17 @@ export default function Dashboard() {
           等级永不下降。今天获得 {todayXp} XP。
         </div>
       </div>
+
+      <section aria-label="Life OS 模块" className="grid gap-3 sm:grid-cols-2">
+        <Link to="/quests" className="card-pad block hover:border-accent/40">
+          <h2 className="font-semibold text-zinc-800">Life RPG · 行动与成长 →</h2>
+          <p className="mt-2 text-sm text-muted">安排任务、记录状态，让现实行动积累技能、经验与资本。</p>
+        </Link>
+        <Link to="/historian" className="card-pad block hover:border-accent/40">
+          <h2 className="font-semibold text-zinc-800">自我历史学 · 记录与理解 →</h2>
+          <p className="mt-2 text-sm text-muted">保留原始记录与修订，回看时间线，用证据检验假设与人生实验。</p>
+        </Link>
+      </section>
 
       <CheckInCard />
 

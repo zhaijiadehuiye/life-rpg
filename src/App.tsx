@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useGameStore } from './store/useGameStore'
 import { Layout } from './components/Layout'
 import Onboarding from './pages/Onboarding'
@@ -13,8 +13,10 @@ import MapPage from './pages/MapPage'
 import Stats from './pages/Stats'
 import Settings from './pages/Settings'
 import More from './pages/More'
+import Historian from './pages/Historian'
 
 export default function App() {
+  const { pathname } = useLocation()
   const hydrate = useGameStore((s) => s.hydrate)
   const initialized = useGameStore((s) => s.initialized)
   const [ready, setReady] = useState(false)
@@ -31,7 +33,7 @@ export default function App() {
     )
   }
 
-  if (!initialized) return <Onboarding />
+  if (!initialized && pathname !== '/historian') return <Onboarding />
 
   return (
     <Routes>
@@ -41,6 +43,7 @@ export default function App() {
         <Route path="quests" element={<Quests />} />
         <Route path="skills" element={<Skills />} />
         <Route path="journal" element={<Journal />} />
+        <Route path="historian" element={<Historian />} />
         <Route path="achievements" element={<Achievements />} />
         <Route path="map" element={<MapPage />} />
         <Route path="stats" element={<Stats />} />

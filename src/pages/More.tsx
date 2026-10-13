@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, Trophy, Map as MapIcon, BarChart3, Settings, User, Scroll, Swords } from 'lucide-react'
+import { BookOpen, NotebookPen, Trophy, Map as MapIcon, BarChart3, Settings, User, Scroll, Swords } from 'lucide-react'
 
 export default function More() {
   const items = [
@@ -7,6 +7,7 @@ export default function More() {
     { to: '/quests', label: '任务', icon: Scroll },
     { to: '/skills', label: '技能', icon: Swords },
     { to: '/journal', label: '日志', icon: BookOpen },
+    { to: '/historian', label: '自我历史学', icon: NotebookPen },
     { to: '/achievements', label: '成就', icon: Trophy },
     { to: '/map', label: '地图', icon: MapIcon },
     { to: '/stats', label: '统计', icon: BarChart3 },

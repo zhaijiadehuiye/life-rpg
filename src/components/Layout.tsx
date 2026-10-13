@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import {
-  LayoutDashboard, User, Scroll, Swords, BookOpen, Trophy, Map as MapIcon, BarChart3, Settings,
+  LayoutDashboard, User, Scroll, Swords, BookOpen, NotebookPen, Trophy, Map as MapIcon, BarChart3, Settings,
 } from 'lucide-react'
 
 const NAV = [
@@ -9,6 +9,7 @@ const NAV = [
   { to: '/quests', label: '任务', icon: Scroll },
   { to: '/skills', label: '技能', icon: Swords },
   { to: '/journal', label: '日志', icon: BookOpen },
+  { to: '/historian', label: '自我历史学', icon: NotebookPen },
   { to: '/achievements', label: '成就', icon: Trophy },
   { to: '/map', label: '地图', icon: MapIcon },
   { to: '/stats', label: '统计', icon: BarChart3 },
@@ -20,10 +21,10 @@ export function Layout() {
     <div className="min-h-full flex">
       <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-line bg-ink-900/60 backdrop-blur sticky top-0 h-screen">
         <div className="px-5 py-5 border-b border-line">
-          <div className="text-accent font-mono text-sm tracking-widest">LIFE RPG</div>
-          <div className="text-[11px] text-muted mt-0.5">人生游戏化操作系统</div>
+          <div className="text-accent font-mono text-sm tracking-widest">LIFE OS</div>
+          <div className="text-[11px] text-muted mt-0.5">人生操作系统 · v0.6</div>
         </div>
-        <nav className="flex-1 py-3 px-2 space-y-0.5">
+        <nav aria-label="桌面主导航" className="flex-1 py-3 px-2 space-y-0.5">
           {NAV.map((n) => (
             <NavLink
               key={n.to}
@@ -53,9 +54,9 @@ export function Layout() {
         </div>
       </main>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-900/90 backdrop-blur border-t border-line">
-        <div className="grid grid-cols-5">
-          {NAV.slice(0, 5).map((n) => (
+      <nav aria-label="移动主导航" className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-900/90 backdrop-blur border-t border-line">
+        <div className="grid grid-cols-5 pb-[env(safe-area-inset-bottom)]">
+          {NAV.filter((n) => ['/', '/quests', '/journal', '/historian'].includes(n.to)).map((n) => (
             <NavLink
               key={n.to}
               to={n.to}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useGameStore } from '../store/useGameStore'
 import { todayKey, dateKeyFromTimestamp, formatChineseDate } from '../utils/date'
+import { Link } from 'react-router-dom'
 
 const FIELDS = [
   { key: 'whatHappened', label: '今天发生了什么？', placeholder: '几句话记录今天…' },
@@ -34,9 +35,13 @@ export default function Journal() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-semibold text-zinc-800">人生时间线</h1>
+      <header>
+        <h1 className="text-xl font-semibold text-zinc-800">每日记录</h1>
+        <p className="text-sm text-muted mt-1">用几句话回顾今天。想保存多条记录和每次修改，请使用 <Link to="/historian" className="text-accent underline underline-offset-2">自我历史学</Link>。</p>
+      </header>
       <section className="card-pad">
         <h2 className="label mb-3">今天 · {formatChineseDate(today)}</h2>
+        <p className="text-xs text-muted mb-3">每天一条记录；再次保存会更新今天的内容，不保留修订历史。</p>
         <div className="space-y-3">
           {FIELDS.map((f) => (
             <div key={f.key}>
@@ -46,11 +51,11 @@ export default function Journal() {
             </div>
           ))}
         </div>
-        <button className="btn-primary mt-4" onClick={save}>保存今日记录</button>
+        <button className="btn-primary mt-4" onClick={save}>{existing ? '更新今天的记录' : '保存今天的记录'}</button>
       </section>
 
       <section>
-        <h2 className="label mb-2">历史</h2>
+        <h2 className="label mb-2">过去的每日记录</h2>
         <div className="space-y-2">
           {s.logs.length === 0 && <div className="card-pad text-sm text-muted text-center">还没有历史日志。</div>}
           {s.logs.map((l) => (

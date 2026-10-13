@@ -2,21 +2,21 @@
 
 ## 范围与方法
 
-2026-10-13，Node.js 24.19.0、pnpm 9.15.9。使用 Chromium 与 Python Playwright，在全新隔离 browser context 中仅创建虚构验收记录和仓库内置 Demo 角色，没有读取、清空或迁移真实用户数据。生产构建通过本地静态服务器分别挂载在 `/life-rpg/` 与域名根路径，验证 GitHub Pages 子路径语义；未部署或修改生产站点。
+2026-10-13，Node.js 24.19.0、pnpm 11.25.0。使用 Chromium 与 Python Playwright，在全新隔离 browser context 中仅创建虚构验收记录和仓库内置 Demo 角色，没有读取、清空或迁移真实用户数据。生产构建通过本地静态服务器分别挂载在 `/life-rpg/` 与域名根路径，验证 GitHub Pages 子路径语义；未部署或修改生产站点。
 
 ## 命令结果
 
 | 验收 | 结果 |
 | --- | --- |
-| `pnpm install --frozen-lockfile --store-dir /workspace/.pnpm-store` | 通过，锁文件未变化 |
-| `pnpm typecheck` | 通过 |
-| `pnpm lint` | 通过 |
-| `pnpm test` | 通过：4 文件、13 测试（原有 5 + 导航 2 + 离线缓存 6） |
-| `pnpm build` | 通过：React 构建与 Historian 四个静态文件，生成 12 个文件及两种目录入口的预缓存列表 |
-| `python3 scripts/browser-smoke.py` | 桌面、移动、首次离线进入及域名根路径共 4 组场景通过 |
+| `CI=true pnpm install --frozen-lockfile --store-dir /workspace/.pnpm-store` | 通过，锁文件未变化；本地忽略配置只允许 esbuild 安装脚本 |
+| `pnpm --config.verify-deps-before-run=false typecheck` | 通过 |
+| `pnpm --config.verify-deps-before-run=false lint` | 通过 |
+| `pnpm --config.verify-deps-before-run=false test` | 通过：4 文件、15 测试（新增使用说明入口和固定习惯创建流程） |
+| `pnpm --config.verify-deps-before-run=false build` | 通过：React 构建与 Historian 四个静态文件，生成 12 个文件及两种目录入口的预缓存列表 |
+| `python3 scripts/browser-smoke.py` | 桌面、移动、首次离线进入、域名根路径及减少动态效果共 5 组场景通过 |
 | `git diff --check` | 通过 |
 
-使用 `/workspace/.cloud-tools/node_modules/.bin/pnpm` 是环境已准备的 pnpm 9；`--store-dir` 仅避免受限默认 HOME 缓存目录。应用没有增加依赖，pnpm-lock.yaml 保持原样。
+该云环境的 `HOME` 缓存目录不可写，因此安装显式使用 `/workspace/.pnpm-store`。pnpm 在运行脚本前会尝试自动安装依赖，故验证命令关闭了这次重复检查；冻结安装已先完成。`pnpm-workspace.yaml` 是被 Git 忽略的本地配置，不会提交。应用没有增加依赖，pnpm-lock.yaml 保持原样。
 
 ## 浏览器实测
 
@@ -28,11 +28,15 @@
 - worker 激活后切断 browser context 网络，刷新 React 和 iframe、新增研究记录并再次刷新回读、访问旧静态入口均通过；RPG 存档保持不变。
 - 新 context 在线加载主站、**从未访问 Historian**，然后离线直接进入 `/#/historian` 并刷新，工作区正常可用，未创建 RPG 存档。
 - 根路径部署下直接进入 Historian 和离线刷新也通过。构建 worker 的相对 URLs 在两种部署位置正确解析。
+- 桌面与移动端打开中文使用说明；无需 RPG 存档也能进入说明。按中文类别创建固定习惯，确认只写入习惯列表，完成一次并刷新后仍保留。
+- 首页说明状态记录、行动建议和自己安排的计划彼此不同且都可跳过；新手引导、每日记录、计划页与备份说明均可访问。
+- 每次切换主应用路由都回到页面顶部，避免从长首页进入计划时落在列表中段。
+- 浏览器确认首页所有入场内容的透明度动画最终结束并可见；减少动态效果偏好下也会直接显示。
 - 所有场景无 pageerror；父文档与内层工作区无横向溢出。没有对真实部署域名或真实存档做写入。
 
 ## 新增自动化回归
 
-`src/test/navigation.test.tsx` 覆盖未创建 RPG 角色的独立入口、桌面及移动导航、模块往返不写入已有存档、主页入口和原任务/技能/日志/XP 不变。
+`src/test/navigation.test.tsx` 覆盖未创建 RPG 角色的独立入口、中文说明入口、桌面及移动导航、模块往返不写入已有存档、中文计划表单创建并保存固定习惯。
 
 `tests/service-worker.test.js` 覆盖两模块预缓存、scope 限定清理、Pages 子路径的脚本读取、HashRouter fragment 去除、缺失 JS 不回退 HTML、其他应用/私有备份/非 GET 请求不被拦截。
 
@@ -43,6 +47,9 @@
 | 桌面 | 移动 |
 | --- | --- |
 | [首页模块入口](screenshots/desktop-home.png) | [首页与底栏](screenshots/mobile-home.png) |
+| [中文使用说明](screenshots/desktop-guide.png) | [中文使用说明首屏](screenshots/mobile-guide.png) |
+| [计划与目标](screenshots/desktop-plan.png) | [计划与目标首屏](screenshots/mobile-plan.png) |
+| [添加固定习惯](screenshots/desktop-create-plan.png) | [添加固定习惯首屏](screenshots/mobile-create-plan.png) |
 | [自我历史学模块](screenshots/desktop-historian.png) | [模块与底栏](screenshots/mobile-historian.png) |
 | [已保存修订的时间线](screenshots/desktop-timeline.png) | [时间线](screenshots/mobile-timeline.png) |
 | — | [八个研究视图的移动菜单](screenshots/mobile-historian-menu.png) |

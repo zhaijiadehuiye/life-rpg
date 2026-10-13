@@ -14,6 +14,7 @@ import Stats from './pages/Stats'
 import Settings from './pages/Settings'
 import More from './pages/More'
 import Historian from './pages/Historian'
+import Guide from './pages/Guide'
 
 export default function App() {
   const { pathname } = useLocation()
@@ -33,7 +34,7 @@ export default function App() {
     )
   }
 
-  if (!initialized && pathname !== '/historian') return <Onboarding />
+  if (!initialized && pathname !== '/historian' && pathname !== '/guide') return <Onboarding />
 
   return (
     <Routes>
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
         <Route path="more" element={<More />} />
+        <Route path="guide" element={<Guide />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

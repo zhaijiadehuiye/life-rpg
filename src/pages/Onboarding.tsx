@@ -39,13 +39,15 @@ export default function Onboarding() {
       <div className="w-full max-w-xl">
         <div className="text-center mb-8">
           <div className="font-mono text-accent tracking-[0.3em] text-sm">LIFE OS</div>
-          <h1 className="text-2xl sm:text-3xl font-semibold mt-2 text-zinc-800">把现实成长，养成一个长期角色</h1>
-          <p className="text-muted text-sm mt-2">这不是 Todo List。你在现实里做的每一件有价值的事，都会塑造这个角色。</p>
+          <h1 className="text-2xl sm:text-3xl font-semibold mt-2 text-zinc-800">建立你的个人空间</h1>
+          <p className="text-muted text-sm mt-2">用计划、成长记录和每日回顾，按自己的节奏整理生活。</p>
         </div>
 
+        <Link to="/guide" className="block mb-4 text-center text-sm text-accent underline underline-offset-2">先看中文使用说明</Link>
+
         <Link to="/historian" className="card-pad block mb-6 text-sm hover:border-accent/40">
-          <span className="font-semibold text-accent">直接进入自我历史学 →</span>
-          <span className="block text-muted mt-1">记录原文、研究长期证据，无需先创建 RPG 角色。</span>
+          <span className="font-semibold text-accent">只想写人生记录？进入自我历史学 →</span>
+          <span className="block text-muted mt-1">可以单独使用，不需要创建成长档案。</span>
         </Link>
 
         <div className="flex gap-1.5 mb-6">
@@ -57,20 +59,21 @@ export default function Onboarding() {
         <div className="card-pad">
           {step === 0 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-800">Step 1 · 你叫什么？</h2>
-              <p className="text-muted text-sm mt-1">这是你在这个世界的角色名。随时可以改。</p>
-              <input className="input mt-4" placeholder="输入角色名" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+              <h2 className="text-lg font-semibold text-zinc-800">给个人空间起个名字</h2>
+              <p className="text-muted text-sm mt-1">可选。留空会使用默认名称，之后可以修改。</p>
+              <input className="input mt-4" placeholder="你的名字或昵称（可选）" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
               <div className="flex justify-between mt-6">
-                <button className="btn" onClick={startDemo}>先看 Demo 角色</button>
+                <button className="btn" onClick={startDemo}>载入示例数据</button>
                 <button className="btn-primary" onClick={next}>下一步</button>
               </div>
+              <p className="text-[11px] text-muted mt-3">示例数据会保存到本机浏览器，可在设置中清除。</p>
             </div>
           )}
 
           {step === 1 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-800">Step 2 · 当前最重要的 3 个领域</h2>
-              <p className="text-muted text-sm mt-1">选 2-4 个。这决定首页优先展示什么。</p>
+              <h2 className="text-lg font-semibold text-zinc-800">哪些生活领域对你重要？</h2>
+              <p className="text-muted text-sm mt-1">可选 2–4 项，用来整理长期方向；之后也能调整。</p>
               <div className="grid grid-cols-3 gap-2 mt-4">
                 {allDomains.map((d) => {
                   const on = selectedDomains.includes(d.key)
@@ -92,8 +95,8 @@ export default function Onboarding() {
 
           {step === 2 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-800">Step 3 · 六大资本初步自评</h2>
-              <p className="text-muted text-sm mt-1">0–100。这只是自我追踪的起点，不是对你价值的评分。</p>
+              <h2 className="text-lg font-semibold text-zinc-800">记录个人资源的起点</h2>
+              <p className="text-muted text-sm mt-1">这些滑块只是自我追踪起点，不是对人的价值评分；可以先用默认值。</p>
               <div className="mt-4 space-y-3">
                 {(Object.keys(CAPITAL_META) as CapitalKey[]).map((k) => (
                   <div key={k}>
@@ -117,8 +120,8 @@ export default function Onboarding() {
 
           {step === 3 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-800">Step 4 · 现在的系统状态</h2>
-              <p className="text-muted text-sm mt-1">诚实地滑。这决定今天的"发挥率"参考。</p>
+              <h2 className="text-lg font-semibold text-zinc-800">今天的状态参考</h2>
+              <p className="text-muted text-sm mt-1">按自己的感觉设置即可。它不会改变完成任务时的经验奖励。</p>
               <div className="mt-4 space-y-3">
                 {MENTAL_FIELDS.map((f) => (
                   <div key={f.key}>
@@ -142,9 +145,9 @@ export default function Onboarding() {
 
           {step === 4 && (
             <div>
-              <h2 className="text-lg font-semibold text-zinc-800">Step 5 · 写下你的第一条主线</h2>
-              <p className="text-muted text-sm mt-1">一个你愿意持续推进 3 个月以上的目标。例：完成第一个独立产品。</p>
-              <input className="input mt-4" placeholder="例：英语达到 B2" value={firstQuest} onChange={(e) => setFirstQuest(e.target.value)} />
+              <h2 className="text-lg font-semibold text-zinc-800">想先推进一个长期目标吗？</h2>
+              <p className="text-muted text-sm mt-1">可选。也可以先留空，之后在「计划与目标」里再添加。</p>
+              <input className="input mt-4" placeholder="例如：完成一个个人作品" value={firstQuest} onChange={(e) => setFirstQuest(e.target.value)} />
               <div className="flex justify-between mt-6">
                 <button className="btn" onClick={back}>返回</button>
                 <button className="btn-primary" onClick={finish}>进入世界 →</button>

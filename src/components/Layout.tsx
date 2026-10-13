@@ -1,24 +1,26 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, User, Scroll, Swords, BookOpen, NotebookPen, Trophy, Map as MapIcon, BarChart3, Settings,
 } from 'lucide-react'
 
 const NAV = [
-  { to: '/', label: '首页', icon: LayoutDashboard, end: true },
-  { to: '/character', label: '角色', icon: User },
-  { to: '/quests', label: '任务', icon: Scroll },
+  { to: '/', label: '今天', icon: LayoutDashboard, end: true },
+  { to: '/character', label: '成长', icon: User },
+  { to: '/quests', label: '计划', icon: Scroll },
   { to: '/skills', label: '技能', icon: Swords },
-  { to: '/journal', label: '日志', icon: BookOpen },
+  { to: '/journal', label: '每日记录', icon: BookOpen },
   { to: '/historian', label: '自我历史学', icon: NotebookPen },
   { to: '/achievements', label: '成就', icon: Trophy },
   { to: '/map', label: '地图', icon: MapIcon },
-  { to: '/stats', label: '统计', icon: BarChart3 },
+  { to: '/stats', label: '趋势', icon: BarChart3 },
   { to: '/settings', label: '设置', icon: Settings },
 ]
 
 export function Layout() {
   return (
     <div className="min-h-full flex">
+      <ScrollToTop />
       <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-line bg-ink-900/60 backdrop-blur sticky top-0 h-screen">
         <div className="px-5 py-5 border-b border-line">
           <div className="text-accent font-mono text-sm tracking-widest">LIFE OS</div>
@@ -82,4 +84,14 @@ export function Layout() {
       </nav>
     </div>
   )
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
+  return null
 }

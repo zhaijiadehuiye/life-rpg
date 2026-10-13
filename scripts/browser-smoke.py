@@ -6,6 +6,7 @@ import functools
 import http.server
 import os
 from pathlib import Path
+import re
 import shutil
 import tempfile
 import threading
@@ -82,9 +83,16 @@ with tempfile.TemporaryDirectory(prefix='life-os-smoke-') as directory:
                 original_entry = next(e for e in before['entries'] if e['originalText'] == ORIGINAL)
                 # Initialize RPG demo only in this isolated browser context.
                 page.goto(base)
-                page.get_by_role('button', name='先看 Demo 角色').click()
+                page.get_by_role('button', name='载入示例数据').click()
                 expect(page.locator('section[aria-label="Life OS 模块"]')).to_be_visible()
-                page.screenshot(path=str(SHOTS / f'{name}-home.png'), full_page=True)
+                expect(page.get_by_role('heading', name='今天', exact=True)).to_be_visible()
+                expect(page.get_by_role('heading', name=re.compile('记录今天的状态'))).to_be_visible()
+                page.wait_for_function("Array.from(document.querySelectorAll('.rise')).every((el) => getComputedStyle(el).opacity === '1')")
+                page.screenshot(path=str(SHOTS / f'{name}-home.png'), full_page=not mobile)
+                page.get_by_role('link', name='第一次使用？打开中文使用说明').click()
+                expect(page.get_by_role('heading', name='先从今天的一件小事开始')).to_be_visible()
+                page.screenshot(path=str(SHOTS / f'{name}-guide.png'), full_page=not mobile)
+                nav(page, mobile, '今天')
                 rpg_before = rpg_state(page)
                 nav(page, mobile, '自我历史学')
                 expect(page).to_have_url(base + '#/historian')
@@ -123,46 +131,51 @@ with tempfile.TemporaryDirectory(prefix='life-os-smoke-') as directory:
                 expect(frame.locator('.timeline-card').first).to_contain_text(REVISION)
                 page.screenshot(path=str(SHOTS / f'{name}-timeline.png'), full_page=True)
                 # Parent route history, refresh, exit/re-entry all keep stored data.
-                nav(page, mobile, '首页')
+                nav(page, mobile, '今天')
                 page.go_back()
                 frame_for(page)
                 page.reload()
                 frame_for(page)
                 assert historian_state(page.frames[1]) == after
-                nav(page, mobile, '首页')
+                nav(page, mobile, '今天')
                 nav(page, mobile, '自我历史学')
                 frame_for(page)
                 assert historian_state(page.frames[1]) == after
                 # Existing journal and task/skill/capital growth still persist.
-                nav(page, mobile, '日志')
+                nav(page, mobile, '每日记录')
                 page.locator('textarea').first.fill(f'验收样例（虚构）：{name} RPG 日志。')
-                page.get_by_role('button', name='保存今日记录').click()
-                nav(page, mobile, '首页')
-                page.get_by_role('textbox', name='Check-in 备注').fill('验收样例（虚构）：已观察今日状态。')
-                page.get_by_role('button', name='保存', exact=True).click()
+                page.get_by_role('button', name=re.compile(r'(保存|更新)今天的记录')).click()
+                nav(page, mobile, '今天')
+                page.get_by_role('textbox', name='状态备注').fill('验收样例（虚构）：已观察今日状态。')
+                page.get_by_role('button', name='保存状态').click()
                 before_action = rpg_state(page)
                 action = next(a for a in before_action['dailyActions'] if a['status'] != 'completed' and a.get('skillId'))
-                page.get_by_role('button', name='完成 ' + action['title'], exact=True).click()
+                page.get_by_role('button', name='完成建议：' + action['title'], exact=True).click()
                 after_action = rpg_state(page)
                 assert after_action['profile']['totalXp'] > before_action['profile']['totalXp']
                 assert next(a for a in after_action['dailyActions'] if a['id'] == action['id'])['status'] == 'completed'
                 assert after_action['skills'] != before_action['skills']
                 assert after_action['capitals'] != before_action['capitals']
-                nav(page, mobile, '任务')
-                expect(page.get_by_role('heading', name='任务', exact=True)).to_be_visible()
-                page.get_by_role('button', name='新建', exact=True).click()
-                page.get_by_placeholder('任务标题', exact=True).fill('验收样例（虚构）：新支线任务')
-                page.get_by_role('button', name='创建', exact=True).click()
-                row = page.locator('.card').filter(has_text='验收样例（虚构）：新支线任务')
+                nav(page, mobile, '计划')
+                expect(page.get_by_role('heading', name='计划与目标', exact=True)).to_be_visible()
+                assert page.evaluate('window.scrollY === 0')
+                page.wait_for_timeout(700)
+                page.screenshot(path=str(SHOTS / f'{name}-plan.png'))
+                page.get_by_role('button', name='添加计划', exact=True).click()
+                page.get_by_role('button', name=re.compile(r'^固定习惯')).click()
+                page.screenshot(path=str(SHOTS / f'{name}-create-plan.png'))
+                page.get_by_label('名称', exact=True).fill('验收样例（虚构）：新事项')
+                page.get_by_role('button', name='添加到计划', exact=True).click()
+                row = page.locator('.card').filter(has_text='验收样例（虚构）：新事项')
                 xp = rpg_state(page)['profile']['totalXp']
-                row.locator('button').first.click()
+                page.get_by_role('button', name='完成习惯：验收样例（虚构）：新事项', exact=True).click()
                 assert rpg_state(page)['profile']['totalXp'] > xp
-                assert next(q for q in rpg_state(page)['sideQuests'] if q['title'] == '验收样例（虚构）：新支线任务')['completed']
+                assert next(q for q in rpg_state(page)['dailyQuests'] if q['title'] == '验收样例（虚构）：新事项')['lastCompletedDate']
                 stored_rpg = rpg_state(page)
                 page.reload()
-                expect(page.get_by_role('heading', name='任务', exact=True)).to_be_visible()
+                expect(page.get_by_role('heading', name='计划与目标', exact=True)).to_be_visible()
                 assert rpg_state(page) == stored_rpg
-                nav(page, mobile, '日志')
+                nav(page, mobile, '每日记录')
                 expect(page.locator('textarea').first).to_have_value(f'验收样例（虚构）：{name} RPG 日志。')
                 nav(page, mobile, '自我历史学')
                 frame_for(page)
@@ -191,7 +204,7 @@ with tempfile.TemporaryDirectory(prefix='life-os-smoke-') as directory:
             context = browser.new_context(viewport={'width': 390, 'height': 844})
             page = context.new_page()
             page.goto(base)
-            expect(page.get_by_role('link', name='直接进入自我历史学')).to_be_visible()
+            expect(page.get_by_role('link', name='只想写人生记录？进入自我历史学')).to_be_visible()
             page.evaluate('navigator.serviceWorker.ready')
             page.wait_for_function('navigator.serviceWorker.controller !== null')
             # Guard against future cache cleanup regressions affecting sibling applications.
@@ -217,6 +230,14 @@ with tempfile.TemporaryDirectory(prefix='life-os-smoke-') as directory:
             page.reload()
             frame_for(page)
             print('domain-root direct historian route + offline reload PASS')
+            context.close()
+            context = browser.new_context(viewport={'width': 390, 'height': 844}, reduced_motion='reduce')
+            page = context.new_page()
+            page.goto(base)
+            page.get_by_role('button', name='载入示例数据').click()
+            expect(page.locator('section[aria-label="Life OS 模块"]')).to_be_visible()
+            page.wait_for_function("Array.from(document.querySelectorAll('.rise')).every((el) => getComputedStyle(el).opacity === '1' && getComputedStyle(el).animationName === 'none')")
+            print('reduced-motion dashboard content visible without animation PASS')
             context.close()
             browser.close()
     finally:

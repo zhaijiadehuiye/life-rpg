@@ -131,6 +131,12 @@ export interface DailyLog {
   tomorrowPriority: string
   tasksCompleted: number
   xpEarned: number
+  /** Optional fields added to support richer daily logs without rewriting older saves. */
+  dayRating?: number | null
+  wakeTime?: string
+  meals?: string
+  exerciseDone?: boolean | null
+  exerciseNote?: string
 }
 
 export interface LifeDomain {

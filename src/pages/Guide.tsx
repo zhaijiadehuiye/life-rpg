@@ -22,7 +22,7 @@ export default function Guide() {
           完成计划或行动建议时会按当前规则增加经验；同一项不能通过重复点击反复领奖励。获得的经验不会因休息或连续记录中断而减少。
         </Step>
         <Step number="4" title="可选：留下一段文字">
-          到「每日记录」写几句话回顾今天。想保存多条原始记录、查看每次修改，使用「自我历史学」。
+          到「每日记录」写醒来时间、吃了什么、做过什么、运动情况，也可以给今天打 1–10 分。每项都可跳过。想保存多条原始记录并保留每次修改，使用「自我历史学」。
         </Step>
         <Link to="/" className="btn-primary inline-flex">回到今天 <ArrowRight size={15} /></Link>
       </section>
@@ -38,7 +38,7 @@ export default function Guide() {
 
       <section className="card-pad space-y-3">
         <h2 className="text-base font-semibold text-zinc-800 flex items-center gap-2"><BookOpen size={17} className="text-accent" />这些记录有什么区别？</h2>
-        <GuideRow title="每日记录" detail="Life RPG 的每日回顾，每个日期一份。再次保存当天内容会更新这一天的记录；它不保留修订历史。" />
+        <GuideRow title="每日记录" detail="按日期保存自评分和日常文字：醒来时间、饮食、活动、不顺心的事、运动情况都可选填。再次保存当天内容会更新这一天的记录；它不保留修订历史。" />
         <GuideRow title="每日状态" detail="保存当天的睡眠和自我感受，可帮助生成行动建议。每个日期保留当前一份状态记录。" />
         <GuideRow title="自我历史学" detail="适合保存多条原始记事、回看时间线和整理假设；手动修改记录会留下修订历史。自动分析与原文分开。" />
         <p className="text-xs text-muted">所以：短回顾写「每日记录」；想长期积累、保留修改过程的材料写「自我历史学」。两边目前不会自动合并。</p>

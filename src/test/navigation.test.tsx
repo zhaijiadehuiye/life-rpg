@@ -6,6 +6,7 @@ import App from '../App'
 import { useGameStore } from '../store/useGameStore'
 import { buildDemoState } from '../data/demo'
 import { saveState } from '../lib/storage'
+import { todayKey } from '../utils/date'
 
 let host: HTMLDivElement
 let root: ReturnType<typeof createRoot>
@@ -38,6 +39,7 @@ describe('Life OS module navigation', () => {
     expect(host.querySelector('nav[aria-label="移动主导航"] a[href="/"]')?.textContent).toContain('今天')
     expect(Array.from(host.querySelectorAll('h2')).some((heading) => heading.textContent === '今日任务')).toBe(true)
     expect(Array.from(host.querySelectorAll('a[href="/quests"]')).some((link) => link.textContent === '管理计划')).toBe(true)
+    expect(Array.from(host.querySelectorAll('a[href="/journal"]')).some((link) => link.textContent === '记今天')).toBe(true)
     expect(host.querySelector('h2')?.textContent).toBe('今日任务')
   })
 
@@ -72,6 +74,56 @@ describe('Life OS module navigation', () => {
     const persisted = JSON.parse(localStorage.getItem('life-rpg:v1') ?? 'null')
     expect(persisted.state.dailyQuests.some((quest: { title: string }) => quest.title === '自动化测试习惯')).toBe(true)
     expect(persisted.state.sideQuests.some((quest: { title: string }) => quest.title === '自动化测试习惯')).toBe(false)
+  })
+
+  it('saves a daily rating and routine notes without counting same-day edits as extra journal days', async () => {
+    await saveState(buildDemoState())
+    const startingLogCount = useGameStore.getState().logs.length
+    const hadLogToday = useGameStore.getState().logs.some((log) => log.date === todayKey())
+    await renderAt('/journal')
+
+    expect(host.querySelector('nav[aria-label="移动主导航"] a[href="/journal"]')?.textContent).toContain('每日记录')
+    const setValue = (element: HTMLInputElement | HTMLTextAreaElement, value: string) => {
+      const prototype = element instanceof HTMLInputElement ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype
+      Object.getOwnPropertyDescriptor(prototype, 'value')?.set?.call(element, value)
+      element.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+    const wakeTime = host.querySelector<HTMLInputElement>('input[aria-label="醒来时间"]')!
+    const meals = host.querySelector<HTMLTextAreaElement>('textarea[placeholder="例如：早餐吃了……，晚饭……"]')!
+    const activities = host.querySelector<HTMLTextAreaElement>('textarea[placeholder="工作、学习、休息、见了谁……按你记得的写"]')!
+    const difficultMoment = host.querySelector<HTMLTextAreaElement>('textarea[placeholder="可以只写事实，不用评价自己"]')!
+    const ratingButton = Array.from(host.querySelectorAll('button')).find((button) => button.textContent === '8')!
+    const exerciseButton = Array.from(host.querySelectorAll('button')).find((button) => button.textContent === '运动了')!
+
+    await act(async () => {
+      setValue(wakeTime, '07:15')
+      setValue(meals, '面包、鸡蛋和蔬菜')
+      setValue(activities, '完成了一个小练习，下午散步')
+      setValue(difficultMoment, '上午有点焦虑')
+    })
+    await act(async () => {
+      ratingButton.click()
+      exerciseButton.click()
+    })
+    expect(ratingButton.getAttribute('aria-pressed')).toBe('true')
+    expect(exerciseButton.getAttribute('aria-pressed')).toBe('true')
+    await act(async () => {
+      Array.from(host.querySelectorAll('button')).find((button) => button.textContent?.includes('保存今天的'))?.click()
+    })
+
+    const saved = useGameStore.getState().logs.find((log) => log.date === todayKey())!
+    expect(saved).toMatchObject({ dayRating: 8, wakeTime: '07:15', meals: '面包、鸡蛋和蔬菜', whatHappened: '完成了一个小练习，下午散步', biggestDifficulty: '上午有点焦虑', exerciseDone: true })
+    expect(host.textContent).toContain('8/10 分')
+    const progressAfterFirstSave = useGameStore.getState().achievements.find((achievement) => achievement.id === 'journal-7')?.progress
+
+    await act(async () => { setValue(meals, '补充：晚饭吃了米饭') })
+    await act(async () => {
+      Array.from(host.querySelectorAll('button')).find((button) => button.textContent?.includes('保存今天的修改'))?.click()
+    })
+    const persisted = JSON.parse(localStorage.getItem('life-rpg:v1') ?? 'null')
+    expect(persisted.state.logs.find((log: { date: string }) => log.date === todayKey()).meals).toBe('补充：晚饭吃了米饭')
+    expect(useGameStore.getState().logs).toHaveLength(startingLogCount + (hadLogToday ? 0 : 1))
+    expect(useGameStore.getState().achievements.find((achievement) => achievement.id === 'journal-7')?.progress).toBe(progressAfterFirstSave)
   })
 
   it('opens historian without creating or replacing an RPG save', async () => {

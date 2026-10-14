@@ -14,7 +14,7 @@ iframe 是**暂时的渐进集成方案**：隔离 CSS 与页面生命周期，�
 
 | 来源 | 身份与字段 | 当前写入语义 | 统一记录需保留的信息 |
 | --- | --- | --- | --- |
-| RPG `DailyLog` / `logs` | `date`；whatHappened、bestThing、biggestDifficulty、didRight、tomorrowPriority；tasksCompleted、xpEarned | `writeLog` 按日期更新，现有模型没有 revision | 五段原文分别保留，统计数字不当作用户原文；旧修订不存在时不伪造 |
+| RPG `DailyLog` / `logs` | `date`；whatHappened、bestThing、biggestDifficulty、didRight、tomorrowPriority；tasksCompleted、xpEarned。v0.6 增补可选的 `dayRating`、`wakeTime`、`meals`、`exerciseDone`、`exerciseNote` | `writeLog` 按日期更新，现有模型没有 revision；新增字段是可选的，旧存档保持原样 | 每日文本与自评分保持为用户原文；统计数字不当作用户原文；旧修订不存在时不伪造 |
 | RPG `DailyCheckIn` / `checkIns` | 日期、sleep 小时、energy/focus/mood/stress/selfEfficacy 0–100、note、createdAt | 按日替换，触发三项行动生成 | 状态测量的时间、单位与来源；note 是独立文本 |
 | RPG 任务与行动 | mainQuests 的 milestones、sideQuests、dailyQuests；dailyActions 与 actionLogs；XP transactions、settlements | 用户完成动作产生奖励和日志 | 任务 ID、行动 ID、完成日期、交易引用；不得因导入重放奖励 |
 | Historian `entries` | id、date、createdAt/updatedAt、originalText、currentText、revisions、tags、metadata | 新记录追加；用户编辑追加 revision | 初始原文及每次 revision 的 ID、时间、文本、kind、note，顺序不可丢失 |

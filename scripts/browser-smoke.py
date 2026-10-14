@@ -143,8 +143,19 @@ with tempfile.TemporaryDirectory(prefix='life-os-smoke-') as directory:
                 assert historian_state(page.frames[1]) == after
                 # Existing journal and task/skill/capital growth still persist.
                 nav(page, mobile, '每日记录')
-                page.locator('textarea').first.fill(f'验收样例（虚构）：{name} RPG 日志。')
-                page.get_by_role('button', name=re.compile(r'(保存|更新)今天的记录')).click()
+                page.get_by_role('button', name='8', exact=True).click()
+                page.get_by_label('醒来时间').fill('07:10')
+                page.get_by_label('今天吃了什么？').fill('验收样例（虚构）：米饭、蔬菜和鸡蛋。')
+                page.get_by_label('今天做了哪些事？').fill(f'验收样例（虚构）：{name} RPG 日志。')
+                page.get_by_label('今天不顺心或不太好的事？').fill('验收样例（虚构）：下午有些疲惫。')
+                page.get_by_role('button', name='运动了', exact=True).click()
+                page.get_by_label('运动补充').fill('验收样例（虚构）：散步 20 分钟。')
+                page.get_by_role('button', name=re.compile(r'保存今天的(记录|修改)')).click()
+                saved_journal = next(log for log in rpg_state(page)['logs'] if log['whatHappened'] == f'验收样例（虚构）：{name} RPG 日志。')
+                assert saved_journal['dayRating'] == 8 and saved_journal['wakeTime'] == '07:10'
+                assert saved_journal['meals'] == '验收样例（虚构）：米饭、蔬菜和鸡蛋。'
+                assert saved_journal['exerciseDone'] is True and saved_journal['exerciseNote'] == '验收样例（虚构）：散步 20 分钟。'
+                page.screenshot(path=str(SHOTS / f'{name}-journal.png'), full_page=True)
                 nav(page, mobile, '今天')
                 page.get_by_role('textbox', name='状态备注').fill('验收样例（虚构）：已观察今日状态。')
                 page.get_by_role('button', name='保存状态').click()
@@ -176,7 +187,10 @@ with tempfile.TemporaryDirectory(prefix='life-os-smoke-') as directory:
                 expect(page.get_by_role('heading', name='计划与目标', exact=True)).to_be_visible()
                 assert rpg_state(page) == stored_rpg
                 nav(page, mobile, '每日记录')
-                expect(page.locator('textarea').first).to_have_value(f'验收样例（虚构）：{name} RPG 日志。')
+                expect(page.get_by_label('今天做了哪些事？')).to_have_value(f'验收样例（虚构）：{name} RPG 日志。')
+                expect(page.get_by_label('今天吃了什么？')).to_have_value('验收样例（虚构）：米饭、蔬菜和鸡蛋。')
+                expect(page.get_by_role('button', name='8', exact=True)).to_have_attribute('aria-pressed', 'true')
+                expect(page.get_by_role('button', name='运动了', exact=True)).to_have_attribute('aria-pressed', 'true')
                 nav(page, mobile, '自我历史学')
                 frame_for(page)
                 assert historian_state(page.frames[1]) == after
@@ -198,7 +212,7 @@ with tempfile.TemporaryDirectory(prefix='life-os-smoke-') as directory:
                 expect(page.locator('#entry-composer')).to_be_visible()
                 assert any(e['originalText'] == new_text for e in historian_state(page)['entries'])
                 assert not errors, errors
-                print(f'{name}: navigation, 8 views, old-data compatibility, create/revise, refresh/back/re-entry, journal, check-in, tasks, XP/skills/capitals and offline PASS')
+                print(f'{name}: navigation, 8 views, old-data compatibility, create/revise, refresh/back/re-entry, daily score/routine log, check-in, tasks, XP/skills/capitals and offline PASS')
                 context.close()
             # Precache must support the FIRST historian visit while offline, without RPG setup.
             context = browser.new_context(viewport={'width': 390, 'height': 844})

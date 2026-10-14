@@ -77,6 +77,46 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <section className="rise" style={{ animationDelay: '90ms' }}>
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <h2 className="label">今日任务</h2>
+          <Link to="/quests" className="text-xs text-accent underline underline-offset-2">管理计划</Link>
+        </div>
+        <p className="text-xs text-muted mb-2.5">你添加的固定习惯和一次性事项。长期目标在「计划」页查看。</p>
+        <div className="space-y-2">
+          {todayTasks.length === 0 && (
+            <div className="card-pad text-sm text-muted text-center">
+              今天没有待办。可以添加一项计划，也可以什么都不安排。
+            </div>
+          )}
+          {todayTasks.map(({ kind, q }) => {
+            const isDaily = kind === 'daily'
+            const done = q.kind === 'daily' ? q.lastCompletedDate === today : q.completed
+            return (
+              <div key={q.id} className="card p-3.5 flex items-center gap-3">
+                <button
+                  onClick={() => (isDaily ? s.completeDailyQuest(q.id) : s.completeSideQuest(q.id))}
+                  disabled={done}
+                  aria-label={`${done ? '已完成' : '完成'}：${q.title}`}
+                  className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                    done ? 'bg-accent border-accent text-white' : 'border-line hover:border-accent text-transparent'
+                  }`}
+                >
+                  <Check size={14} />
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className={`text-sm ${done ? 'line-through text-muted' : 'text-zinc-800'}`}>{q.title}</div>
+                  <div className="text-[11px] text-muted mt-0.5">
+                    {isDaily ? '固定习惯' : '一次性事项'} · 完成得 +{q.xpReward} XP
+                    {'capitalKey' in q && q.capitalKey ? ` · ${capitalLabel(q.capitalKey, s.capitals)}` : ''}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
       <section aria-label="Life OS 模块" className="grid gap-3 sm:grid-cols-2">
         <Link to="/quests" className="card-pad block hover:border-accent/40">
           <h2 className="font-semibold text-zinc-800">Life RPG · 行动与成长 →</h2>
@@ -145,46 +185,6 @@ export default function Dashboard() {
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className="rise" style={{ animationDelay: '240ms' }}>
-        <div className="flex items-center justify-between gap-3 mb-1">
-          <h2 className="label">今日任务</h2>
-          <Link to="/quests" className="text-xs text-accent underline underline-offset-2">管理计划</Link>
-        </div>
-        <p className="text-xs text-muted mb-2.5">你添加的固定习惯和一次性事项。长期目标在「计划」页查看。</p>
-        <div className="space-y-2">
-          {todayTasks.length === 0 && (
-            <div className="card-pad text-sm text-muted text-center">
-              今天没有待办。可以添加一项计划，也可以什么都不安排。
-            </div>
-          )}
-          {todayTasks.map(({ kind, q }) => {
-            const isDaily = kind === 'daily'
-            const done = q.kind === 'daily' ? q.lastCompletedDate === today : q.completed
-            return (
-              <div key={q.id} className="card p-3.5 flex items-center gap-3">
-                <button
-                  onClick={() => (isDaily ? s.completeDailyQuest(q.id) : s.completeSideQuest(q.id))}
-                  disabled={done}
-                  aria-label={`${done ? '已完成' : '完成'}：${q.title}`}
-                  className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
-                    done ? 'bg-accent border-accent text-white' : 'border-line hover:border-accent text-transparent'
-                  }`}
-                >
-                  <Check size={14} />
-                </button>
-                <div className="flex-1 min-w-0">
-                  <div className={`text-sm ${done ? 'line-through text-muted' : 'text-zinc-800'}`}>{q.title}</div>
-                  <div className="text-[11px] text-muted mt-0.5">
-                    {isDaily ? '固定习惯' : '一次性事项'} · 完成得 +{q.xpReward} XP
-                    {'capitalKey' in q && q.capitalKey ? ` · ${capitalLabel(q.capitalKey, s.capitals)}` : ''}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
         </div>
       </section>
 

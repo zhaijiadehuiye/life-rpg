@@ -117,7 +117,7 @@ with tempfile.TemporaryDirectory(prefix='life-os-smoke-') as directory:
                 frame.locator('#entry-composer').fill(new_text)
                 frame.locator('[data-action="save-entry"]').click()
                 expect(frame.locator('#save-indicator')).to_contain_text('原文与分析已分别保存')
-                frame.locator('[data-action="view-entry"]').first.click()
+                frame.locator('.entry-mini').filter(has_text=new_text).get_by_role('button', name='打开证据 →').click()
                 frame.locator('#revision-text').fill(REVISION)
                 frame.get_by_role('button', name='保存新版本').click()
                 expect(frame.locator('#app-dialog')).not_to_be_visible()
@@ -128,7 +128,7 @@ with tempfile.TemporaryDirectory(prefix='life-os-smoke-') as directory:
                 assert next(e for e in after['entries'] if e['id'] == original_entry['id']) == original_entry
                 assert rpg_state(page) == rpg_before
                 view(frame, mobile, 'timeline')
-                expect(frame.locator('.timeline-card').first).to_contain_text(REVISION)
+                expect(frame.locator('.timeline-card').filter(has_text=REVISION)).to_be_visible()
                 page.screenshot(path=str(SHOTS / f'{name}-timeline.png'), full_page=True)
                 # Parent route history, refresh, exit/re-entry all keep stored data.
                 nav(page, mobile, '今天')

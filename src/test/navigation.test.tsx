@@ -38,6 +38,7 @@ describe('Life OS module navigation', () => {
     expect(host.querySelector('nav[aria-label="移动主导航"] a[href="/"]')?.textContent).toContain('今天')
     expect(Array.from(host.querySelectorAll('h2')).some((heading) => heading.textContent === '今日任务')).toBe(true)
     expect(Array.from(host.querySelectorAll('a[href="/quests"]')).some((link) => link.textContent === '管理计划')).toBe(true)
+    expect(host.querySelector('h2')?.textContent).toBe('今日任务')
   })
 
   it('shows the Chinese getting-started guide before an RPG profile exists', async () => {

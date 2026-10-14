@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Plus, Trash2, Dices, Pencil, BookOpen } from 'lucide-react'
+import { Check, Plus, Trash2, Dices, Pencil, BookOpen, CalendarCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useGameStore } from '../store/useGameStore'
 import { AddQuestModal, type EditingQuest } from '../components/AddQuestModal'
@@ -34,6 +34,11 @@ export default function Quests() {
           <BookOpen size={16} className="text-accent mt-0.5 shrink-0" />
           <p>不知道从哪开始？先建一个「一次性事项」即可。<Link className="text-accent underline underline-offset-2" to="/guide">查看 2 分钟使用说明</Link></p>
         </div>
+        <Link to="/" className="card p-3.5 flex items-center gap-3 text-sm hover:border-accent/40">
+          <CalendarCheck size={17} className="text-accent shrink-0" />
+          <span className="flex-1"><strong className="font-medium text-zinc-800">每天要做什么？</strong><span className="block text-xs text-muted mt-0.5">去「今天」页查看并勾选今日任务。</span></span>
+          <span className="text-accent shrink-0">打开今天 →</span>
+        </Link>
       </header>
 
       <section>

@@ -149,8 +149,11 @@ export default function Dashboard() {
       </section>
 
       <section className="rise" style={{ animationDelay: '240ms' }}>
-        <h2 className="label mb-1">你安排的计划</h2>
-        <p className="text-xs text-muted mb-2.5">这里是你自己添加的一次性事项和固定习惯；长期目标在计划页查看。</p>
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <h2 className="label">今日任务</h2>
+          <Link to="/quests" className="text-xs text-accent underline underline-offset-2">管理计划</Link>
+        </div>
+        <p className="text-xs text-muted mb-2.5">你添加的固定习惯和一次性事项。长期目标在「计划」页查看。</p>
         <div className="space-y-2">
           {todayTasks.length === 0 && (
             <div className="card-pad text-sm text-muted text-center">

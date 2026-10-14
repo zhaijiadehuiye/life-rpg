@@ -30,6 +30,16 @@ async function renderAt(path: string) {
 }
 
 describe('Life OS module navigation', () => {
+  it('shows an obvious Today entry and labels the dashboard checklist as today tasks', async () => {
+    await saveState(buildDemoState())
+    await renderAt('/')
+
+    expect(host.querySelector('nav[aria-label="桌面主导航"] a[href="/"]')?.textContent).toContain('今天')
+    expect(host.querySelector('nav[aria-label="移动主导航"] a[href="/"]')?.textContent).toContain('今天')
+    expect(Array.from(host.querySelectorAll('h2')).some((heading) => heading.textContent === '今日任务')).toBe(true)
+    expect(Array.from(host.querySelectorAll('a[href="/quests"]')).some((link) => link.textContent === '管理计划')).toBe(true)
+  })
+
   it('shows the Chinese getting-started guide before an RPG profile exists', async () => {
     await renderAt('/guide')
     expect(host.querySelector('h1')?.textContent).toBe('先从今天的一件小事开始')
@@ -42,6 +52,7 @@ describe('Life OS module navigation', () => {
     await renderAt('/quests')
     expect(host.querySelector('h1')?.textContent).toBe('计划与目标')
     expect(host.querySelector('nav[aria-label="移动主导航"] a[href="/quests"]')?.textContent).toBe('计划')
+    expect(host.querySelector('header a[href="/"]')?.textContent).toContain('每天要做什么？')
 
     const buttonByText = (text: string) => Array.from(host.querySelectorAll('button')).find((button) => button.textContent?.includes(text))
     await act(async () => { buttonByText('添加计划')?.click() })

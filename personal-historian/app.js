@@ -22,14 +22,14 @@ const dialog = document.getElementById("app-dialog");
 const dialogInner = document.getElementById("dialog-inner");
 
 const NAV_LABELS = {
-  today: "TODAY",
-  timeline: "TIMELINE",
-  patterns: "PATTERNS",
-  hypotheses: "HYPOTHESES",
-  experiments: "EXPERIMENTS",
-  predictions: "PREDICTIONS",
-  reviews: "REVIEWS",
-  archive: "ARCHIVE"
+  today: "今日记录 · TODAY",
+  timeline: "时间线 · TIMELINE",
+  patterns: "长期模式 · PATTERNS",
+  hypotheses: "假设库 · HYPOTHESES",
+  experiments: "人生实验 · EXPERIMENTS",
+  predictions: "自我预测 · PREDICTIONS",
+  reviews: "复盘 · REVIEWS",
+  archive: "档案 · ARCHIVE"
 };
 
 const uid = (prefix = "id") => {

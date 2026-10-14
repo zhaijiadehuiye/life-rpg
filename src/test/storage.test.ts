@@ -14,6 +14,8 @@ describe('versioned local storage import', () => {
     expect(result.state?.profile?.name).toBe(state.profile?.name)
     expect(result.state?.checkIns).toEqual({})
     expect(result.state?.dailyActions).toEqual([])
+    expect(result.state?.logs).toEqual(state.logs)
+    expect(result.state?.logs.every((log) => log.dayRating === undefined)).toBe(true)
   })
 
   it('rejects malformed backups with a user-readable error', () => {

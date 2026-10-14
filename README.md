@@ -1,8 +1,17 @@
-# Life RPG · 人生游戏化操作系统
+# Life OS v0.6 · 人生操作系统
 
 把现实中的个人成长、资源积累、心理状态和人生目标，转换成 RPG 中的角色属性、资本、Buff/Debuff、主线、支线、经验值与成就，并形成“每日状态 → 今日行动 → 角色成长 → 每日结算 → 历史趋势”的闭环。
 
 **它不是 Todo List，也不是习惯打卡软件。** 你在现实中完成真正有价值的行动，游戏角色才成长。
+
+## 两个模块，一个入口
+
+- **Life RPG · 行动与成长**：状态、任务、技能、经验与资本，保留原有计算规则。
+- **自我历史学 · 记录与理解**：原文、时间线、长期模式、假设、实验、预测、复盘与档案。主导航与首页进入 `/#/historian`，无需先创建 RPG 角色。
+
+第一阶段使用同源 iframe 作为暂时集成方案，旧 `personal-historian/` 链接保持可用。两套数据分别存于原 localStorage / IndexedDB，本次不迁移真实数据。不同域名的档案需用户显式导出/导入；现有 Historian 导入是确认后的整库替换，请先备份。[数据适配、备份与迁移设计](docs/life-os-v0.6-design.md)。
+
+`pnpm build` 自动包含 Historian 静态资源和全部构建资源的离线预缓存；首次在线加载并完成 service worker 安装后，可离线进入两个模块。未保存的研究草稿离开模块后不会保留。[验证与截图](docs/life-os-v0.6-validation.md)。
 
 ---
 
@@ -15,7 +24,7 @@ pnpm build          # 类型检查 + 生产构建，产物在 dist/
 pnpm preview        # 本地预览构建产物
 ```
 
-> 依赖：Node.js ≥ 18。首次启动选择「先看 Demo 角色」即可立刻看到完整效果。
+> 依赖：Node.js 24（与 CI 一致），pnpm 9。首次启动选择「先看 Demo 角色」即可立刻看到完整效果。
 
 ## 在线使用
 
@@ -92,7 +101,7 @@ Check-in 的六项状态会影响规则引擎选择的行动：睡眠不足或�
 
 ## PWA 与同步边界
 
-生产构建包含 manifest、service worker、PNG/SVG 图标和移动端 standalone 配置。Supabase 接入预留在 `src/lib/cloud.ts` 的 `SyncStore` 接口中，当前 localStorage 仍是唯一真实数据源。
+生产构建包含 manifest、service worker、PNG/SVG 图标和移动端 standalone 配置。Supabase 接入预留在 `src/lib/cloud.ts` 的 `SyncStore` 接口中，Life RPG 的 localStorage 仍是其真实数据源，自我历史学沿用 IndexedDB。
 
 ---
 
@@ -140,3 +149,5 @@ UI 明确标注"游戏化参考值，非医学/心理学测量"。调权重只�
 - 状态差时文案是"系统处于高负载，建议降低任务复杂度"，不出现"失败/懒惰/落后"。
 - 等级永不下降；断签只暂停 streak，保留 longestStreak。
 - 所有资本值都标注"自我追踪工具，不是人的价值评分"。
+
+Pull request previews are published under `/previews/pr-<number>/` after the Pages workflow completes. They use an isolated service-worker scope; the workflow rebuilds the current `main` root unchanged and removes the preview when its pull request closes. The branch preview is public and uses the same GitHub Pages origin as the production app, so the browser's existing app storage is shared.

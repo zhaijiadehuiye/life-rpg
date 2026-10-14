@@ -3,9 +3,13 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, closed]
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -16,6 +20,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'pull_request' || github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,25 +40,80 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build production site
-        run: pnpm build
-
-      - name: Include Personal Historian
+      - name: Verify and build
         run: |
-          mkdir -p dist/personal-historian
-          cp personal-historian/index.html personal-historian/styles.css personal-historian/app.js personal-historian/favicon.svg dist/personal-historian/
+          pnpm typecheck
+          pnpm lint
+          pnpm test
+          pnpm build
+
+      - name: Configure Pages for production deployment
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload production Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      - name: Upload pull request preview files
+        if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-artifact@v4
+        with:
+          name: life-os-pr-preview
+          path: ./dist
+          if-no-files-found: error
+          retention-days: 3
+
+  preview-base:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      # Rebuild main independently so the public root stays at the exact main version.
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-source
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: main-source/pnpm-lock.yaml
+
+      - name: Install main dependencies
+        working-directory: main-source
+        run: pnpm install --frozen-lockfile
+
+      - name: Build main site
+        working-directory: main-source
+        run: pnpm build
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload main Pages files
+        uses: actions/upload-artifact@v4
         with:
-          path: ./dist
+          name: life-os-main-pages
+          path: main-source/dist
+          if-no-files-found: error
+          retention-days: 3
 
-  deploy:
+  deploy-main:
+    if: github.event_name != 'pull_request' && (github.event_name == 'push' || github.ref == 'refs/heads/main')
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -61,5 +121,43 @@ jobs:
     needs: build
     steps:
       - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  deploy-preview:
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.preview-base.result == 'success' && (github.event.action == 'closed' || needs.build.result == 'success')
+    environment:
+      name: github-pages-preview
+      url: ${{ steps.deployment.outputs.page_url }}previews/pr-${{ github.event.pull_request.number }}/
+    runs-on: ubuntu-latest
+    needs: [build, preview-base]
+    steps:
+      - name: Download main site
+        uses: actions/download-artifact@v4
+        with:
+          name: life-os-main-pages
+          path: pages-site
+
+      - name: Download pull request preview
+        if: github.event.action != 'closed'
+        uses: actions/download-artifact@v4
+        with:
+          name: life-os-pr-preview
+          path: preview-dist
+
+      - name: Add isolated pull request preview
+        if: github.event.action != 'closed'
+        env:
+          PREVIEW_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          mkdir -p "pages-site/previews/pr-${PREVIEW_NUMBER}"
+          cp -a preview-dist/. "pages-site/previews/pr-${PREVIEW_NUMBER}/"
+
+      - name: Upload main plus pull request preview
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages-site
+
+      - name: Deploy preview and keep the main root unchanged
         id: deployment
         uses: actions/deploy-pages@v4

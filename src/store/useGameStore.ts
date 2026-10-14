@@ -470,15 +470,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   writeLog: (log) => {
     const today = todayKey()
     set((s) => {
+      const isNewDay = !s.logs.some((l) => l.date === today)
       const entry: DailyLog = { ...log, date: today }
       const logs = s.logs.some((l) => l.date === today)
         ? s.logs.map((l) => (l.date === today ? entry : l))
         : [entry, ...s.logs]
-      const achievements = s.achievements.map((a) => {
+      const achievements = isNewDay ? s.achievements.map((a) => {
         if (a.id !== 'journal-7') return a
         const progress = Math.min(a.target, a.progress + 1)
         return { ...a, progress, unlockedAt: progress >= a.target && !a.unlockedAt ? today : a.unlockedAt }
-      })
+      }) : s.achievements
       return { logs, achievements }
     })
     persistAfter(get)

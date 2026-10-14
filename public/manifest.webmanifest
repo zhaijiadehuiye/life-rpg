@@ -1,7 +1,7 @@
 {
-  "name": "Life RPG · 人生操作系统",
-  "short_name": "Life RPG",
-  "description": "把现实成长转换成角色属性、资本与主线任务的人生游戏化操作系统",
+  "name": "Life OS · 人生操作系统",
+  "short_name": "Life OS",
+  "description": "记录行动与成长，用长期证据理解自己",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0a0b0f",

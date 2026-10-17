@@ -11,6 +11,8 @@
 
 第一阶段使用同源 iframe 作为暂时集成方案，旧 `personal-historian/` 链接保持可用。两套数据分别存于原 localStorage / IndexedDB，本次不迁移真实数据。不同域名的档案需用户显式导出/导入；现有 Historian 导入是确认后的整库替换，请先备份。[数据适配、备份与迁移设计](docs/life-os-v0.6-design.md)。
 
+「今天」增加生活看板：睡眠起止与时长、每日自评分、活动时间分布、近 7 天睡眠和当天日记摘要。首页与每日记录共用时段数据，可补记、修改和离线保存，不会自动完成任务或增加经验。[操作说明、统计口径与验收](docs/today-life-dashboard.md)。
+
 `pnpm build` 自动包含 Historian 静态资源和全部构建资源的离线预缓存；首次在线加载并完成 service worker 安装后，可离线进入两个模块。未保存的研究草稿离开模块后不会保留。[验证与截图](docs/life-os-v0.6-validation.md)。
 
 ---
@@ -24,7 +26,7 @@ pnpm build          # 类型检查 + 生产构建，产物在 dist/
 pnpm preview        # 本地预览构建产物
 ```
 
-> 依赖：Node.js 24（与 CI 一致），pnpm 9。首次启动选择「先看 Demo 角色」即可立刻看到完整效果。
+> 依赖：Node.js 24（与 CI 一致），pnpm 9。首次启动可选择「载入示例数据」查看效果，或创建自己的档案。已有记录时请继续使用原档案。
 
 ## 在线使用
 
@@ -89,9 +91,9 @@ src/
 
 ## 数据存储方式
 
-- 当前实现：**localStorage**，key = `life-rpg:v1`，存档 payload schema 已升级到 v2。
+- 当前实现：**localStorage**，key = `life-rpg:v1`，存档 payload schema 已升级到 v3，新增 `timeEntries` 时段集合。
 - 持久化层封装在 `src/lib/storage.ts`，`src/services/storage.ts` 保留兼容入口，只暴露 `loadState()` / `saveState(state)`。
-- 每次 store 修改后都会自动保存，刷新不丢；v1 存档会在读取和导入时补齐 v2 字段。
+- v1/v2 存档读取时只在内存补齐集合，不自动改写存档，也不改写原日志和 Check-in。睡眠时段缺失时可显示旧版自报时长；只有醒来时间时不倒推出入睡时间。
 - 「设置」页支持：**导出 JSON 备份**、**导入 JSON 恢复**、**清空数据重新开始**。
 - 首页每日 Check-in 会根据规则生成 3 个关键行动；完成后同时写入角色 XP、资本/技能 XP、streak 和行动日志。
 

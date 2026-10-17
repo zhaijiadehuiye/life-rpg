@@ -3,6 +3,7 @@ export {
   STORAGE_VERSION,
   loadState,
   saveState,
+  persistState,
   clearState,
   exportState,
   parseImport,

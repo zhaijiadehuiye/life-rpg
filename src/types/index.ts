@@ -179,6 +179,21 @@ export interface DailyCheckIn {
   createdAt: string
 }
 
+export type TimeCategory = 'sleep' | 'work' | 'study' | 'exercise' | 'rest' | 'other'
+
+/** User-recorded, completed intervals; timestamps retain their actual dates. */
+export interface TimeEntry {
+  id: string
+  category: TimeCategory
+  startedAt: string
+  endedAt: string
+  note: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type TimeEntryInput = Pick<TimeEntry, 'category' | 'startedAt' | 'endedAt' | 'note'> & { id?: string }
+
 export type DailyActionStatus = 'available' | 'completed'
 
 export interface DailyAction {
@@ -248,4 +263,6 @@ export interface GameState {
   dailyActions?: DailyAction[]
   actionLogs?: ActionLog[]
   settlements?: DailySettlement[]
+  /** v3: additive time records. Legacy logs/check-ins are kept unchanged. */
+  timeEntries?: TimeEntry[]
 }

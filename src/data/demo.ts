@@ -1,12 +1,13 @@
 // Demo 数据：让用户第一次打开就能看到完整产品形态。
 import type {
   Achievement, DailyLog, DailyQuest, GameState, MainQuest, MentalState,
-  RandomEvent, SideQuest, Skill, StatusEffect, UserProfile,
+  RandomEvent, SideQuest, Skill, StatusEffect, UserProfile, TimeCategory, TimeEntry,
 } from '../types'
 import { uuid } from '../utils/id'
 import { todayKey, addDays } from '../utils/date'
 import { buildDefaultCapitals, DEFAULT_ACHIEVEMENTS, DEFAULT_DOMAINS, DEFAULT_MAP_NODES } from './constants'
 import { levelFromTotalXp } from '../utils/xp'
+import { timestampFromLocal } from '../lib/dailyTime'
 
 export function buildDemoState(): GameState {
   const t = todayKey()
@@ -96,9 +97,7 @@ export function buildDemoState(): GameState {
   ]
 
   const effects: StatusEffect[] = [
-    { id: uuid(), name: '连续行动', description: '连续推进主线，学习 XP +10%。', icon: 'flame', type: 'buff', source: 'derived' },
-    { id: uuid(), name: '高压力', description: '压力偏高，建议先做恢复类任务。', icon: 'zap', type: 'debuff', source: 'derived' },
-    { id: uuid(), name: '睡眠不足', description: '精力偏低，当前发挥率下降。', icon: 'moon', type: 'debuff', source: 'derived' },
+    { id: uuid(), name: '连续行动', description: '已连续推进，状态在累积。', icon: 'flame', type: 'buff', source: 'derived' },
   ]
 
   const logs: DailyLog[] = []
@@ -113,6 +112,7 @@ export function buildDemoState(): GameState {
       tomorrowPriority: '把原型的核心交互跑通。',
       tasksCompleted: i === 0 ? 2 : 3,
       xpEarned: i === 0 ? 55 : 70 + i * 5,
+      ...(i === 0 ? { dayRating: 8, meals: '早餐：鸡蛋、牛奶；午餐：米饭、青菜；晚餐：面条', exerciseDone: true, exerciseNote: '晚饭后散步', whatHappened: '推进产品原型，读了一会儿书，傍晚散步。' } : {}),
     })
   }
 
@@ -133,8 +133,31 @@ export function buildDemoState(): GameState {
   return {
     initialized: true, profile, mental, capitals, skills, mainQuests, sideQuests,
     dailyQuests, randomEvents, effects, logs, domains, achievements,
-    transactions: [], mapNodes: DEFAULT_MAP_NODES,
+    transactions: [], mapNodes: DEFAULT_MAP_NODES, timeEntries: demoTimeEntries(t),
+    checkIns: {}, dailyActions: [], actionLogs: [], settlements: [],
   }
+}
+
+// Explicit example mode only. Never add sample records when loading a real save.
+function demoTimeEntries(today: string): TimeEntry[] {
+  const now = new Date().toISOString()
+  const result: TimeEntry[] = []
+  const add = (category: TimeCategory, startedAt: string, endedAt: string, note = '') => {
+    if (Date.parse(endedAt) > Date.now()) return
+    result.push({ id: uuid(), category, startedAt, endedAt, note, createdAt: now, updatedAt: now })
+  }
+  ;[410, 440, 480, null, 430, 400, 460].forEach((minutes, index) => {
+    if (minutes === null) return
+    const date = addDays(today, index - 6)
+    const end = timestampFromLocal(date, '07:50')!
+    add('sleep', new Date(Date.parse(end) - minutes * 60_000).toISOString(), end, '虚构示例：睡眠')
+  })
+  const activities: [TimeCategory, string, string][] = [
+    ['other', '08:00', '08:30'], ['work', '09:00', '12:00'], ['other', '12:00', '13:00'],
+    ['work', '13:00', '16:00'], ['study', '16:15', '17:45'], ['exercise', '18:30', '18:50'], ['rest', '20:00', '22:00'],
+  ]
+  activities.forEach(([category, start, end]) => add(category, timestampFromLocal(today, start)!, timestampFromLocal(today, end)!, '虚构示例'))
+  return result
 }
 
 function mkSkill(name: string, category: string, level: number, xp: number): Skill {

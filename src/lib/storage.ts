@@ -2,7 +2,7 @@
 import type { GameState } from '../types'
 
 const STORAGE_KEY = 'life-rpg:v1'
-export const STORAGE_VERSION = 2
+export const STORAGE_VERSION = 3
 
 export interface PersistedPayload {
   version: number
@@ -24,12 +24,17 @@ export async function loadState(): Promise<GameState | null> {
 }
 
 export async function saveState(state: GameState): Promise<void> {
-  const payload: PersistedPayload = { version: STORAGE_VERSION, savedAt: new Date().toISOString(), state }
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+    persistState(state)
   } catch (err) {
     console.error('[storage] save failed', err)
   }
+}
+
+// Synchronous, throwing variant for forms that must confirm durable storage before closing.
+export function persistState(state: GameState): void {
+  const payload: PersistedPayload = { version: STORAGE_VERSION, savedAt: new Date().toISOString(), state }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
 }
 
 export async function clearState(): Promise<void> {
@@ -53,13 +58,14 @@ export function parseImport(text: string): { state?: GameState; error?: string }
 }
 
 function migrateState(state: GameState, version: number): GameState {
-  // v1 已包含角色、任务和日志；v2 增加每日操作闭环集合。
-  if (version !== 1 && version !== STORAGE_VERSION) return state
+  // Add collections only; keep every original log/check-in and never write during loading.
+  if (![1, 2, STORAGE_VERSION].includes(version)) return state
   return {
     ...state,
     checkIns: state.checkIns ?? {},
     dailyActions: state.dailyActions ?? [],
     actionLogs: state.actionLogs ?? [],
     settlements: state.settlements ?? [],
+    timeEntries: state.timeEntries ?? [],
   }
 }

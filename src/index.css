@@ -78,6 +78,9 @@ body {
       transition-colors border border-transparent bg-zinc-900 text-white hover:bg-zinc-800
       disabled:opacity-40 disabled:pointer-events-none;
   }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl border border-line px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-ink-800 transition-colors;
+  }
   .input {
     @apply w-full rounded-xl bg-white border border-line px-3.5 py-2.5 text-sm text-zinc-800
       placeholder:text-muted focus:outline-none focus:border-accent/60 focus:shadow-glow;
@@ -112,4 +115,10 @@ input[type='range']::-moz-range-thumb {
   background: #5f8f73;
   border: none;
   cursor: pointer;
+}
+@layer components {
+  .life-stat { @apply rounded-2xl p-3 sm:p-4 min-w-0 transition-colors hover:ring-1 hover:ring-accent/30; }
+  .life-stat-label { @apply flex items-center gap-1.5 text-xs text-zinc-600; }
+  .life-stat-value { @apply block text-xl sm:text-2xl font-semibold text-zinc-800 mt-2 tracking-tight tabular-nums; }
+  .life-stat-hint { @apply block text-[10px] sm:text-[11px] text-muted mt-1.5; }
 }

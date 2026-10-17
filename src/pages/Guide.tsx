@@ -12,8 +12,11 @@ export default function Guide() {
 
       <section className="card-pad space-y-4">
         <h2 className="text-base font-semibold text-zinc-800">最简单的日常用法</h2>
+        <Step number="☀" title="先看看自己的生活">
+          「今天」最上方会显示睡眠、醒来时间和每日自评分。点睡眠卡片补记起止时间，点「记一段活动」记录已经发生的工作、学习、运动或休息；点「补记 / 修改」填写吃了什么、做了什么和今天的感受。保存后直接显示在首页。
+        </Step>
         <Step number="1" title="先看今天要做的事">
-          首页上方的「今日任务」是你自己添加的固定习惯和一次性事项。做完一项就点旁边的圆圈；没有待办时，可以去「计划」添加，也可以留空。
+          生活看板下方的「今日任务」是你自己添加的固定习惯和一次性事项。做完一项就点旁边的圆圈；没有待办时，可以去「计划」添加，也可以留空。
         </Step>
         <Step number="2" title="状态记录是可选的">
           想记今天的睡眠、精力、专注等状态时，再填写首页的状态卡片。保存后会出现三条行动建议；它们和你安排的任务分开，你可以忽略。
@@ -25,6 +28,14 @@ export default function Guide() {
           到「每日记录」写醒来时间、吃了什么、做过什么、运动情况，也可以给今天打 1–10 分。每项都可跳过。想保存多条原始记录并保留每次修改，使用「自我历史学」。
         </Step>
         <Link to="/" className="btn-primary inline-flex">回到今天 <ArrowRight size={15} /></Link>
+      </section>
+
+      <section className="card-pad space-y-3">
+        <h2 className="text-base font-semibold text-zinc-800">怎样看睡眠和时间图表</h2>
+        <GuideRow title="睡眠与午睡" detail="睡眠按醒来日期归属，可以记录多段，时长相加；首页起止时间显示最长的一段。作息时间轴显示昨天 18 点到今天 18 点。这里的时长是按填写的起止估算，不是设备监测。" />
+        <GuideRow title="时间分布" detail="按当天 00:00–24:00 的实际部分汇总。跨午夜自动拆分，时段不能重叠；灰色表示未记录或还没到的时间，不代表休息。日记文字和任务预计时长不会变成活动时长。" />
+        <GuideRow title="7 天均值" detail="未记录的日子留空，不当作 0 小时。优先使用睡眠时段，缺少时段时使用旧版状态中的自报时长；旧版醒来时间不会被用来倒推入睡时间。" />
+        <GuideRow title="补记和修改" detail="首页展开「查看 / 修改时段记录」可以修改或删除某一段，也可另记午睡。日期可改成过去日期；每段保存后立即更新同一份本地数据，不会自动完成任务或增加经验。" />
       </section>
 
       <section className="card-pad space-y-3">

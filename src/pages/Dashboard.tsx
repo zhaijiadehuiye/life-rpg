@@ -10,6 +10,9 @@ import { Icon } from '../components/Icon'
 import { AddQuestModal } from '../components/AddQuestModal'
 import { calculateDailySettlement, CAPITAL_LABELS } from '../data/dailyRules'
 import type { Capital, CapitalKey, DailyCheckIn } from '../types'
+import { LifeOverview } from '../components/LifeOverview'
+import { sleepForDate, formatDuration } from '../lib/dailyTime'
+import { useNow } from '../utils/useNow'
 
 const MENTAL_LABEL: { key: 'energy' | 'focus' | 'stress' | 'mood' | 'selfEfficacy' | 'socialBattery'; label: string; color: string }[] = [
   { key: 'energy', label: '精力', color: 'bg-accent' },
@@ -26,7 +29,8 @@ export default function Dashboard() {
 
   const perf = useMemo(() => computePerformance(s.mental), [s.mental])
   const lv = levelFromTotalXp(s.profile?.totalXp ?? 0)
-  const today = todayKey()
+  const now = useNow()
+  const today = todayKey(now)
 
   const openSides = s.sideQuests.filter((q) => !q.completed).slice(0, 5)
   const openDailies = s.dailyQuests.filter((q) => q.lastCompletedDate !== today).slice(0, 5)
@@ -50,21 +54,23 @@ export default function Dashboard() {
           <div className="text-[12px] text-muted">{formatChineseDate(today)}</div>
           <h1 className="text-3xl font-bold text-zinc-900 mt-0.5 tracking-tight">今天</h1>
           <div className="text-sm text-muted mt-1">{s.profile?.name} 的个人空间</div>
-          <div className="flex items-center gap-2 mt-2.5 text-sm">
+          <div className="flex flex-wrap items-center gap-2 mt-2.5 text-sm">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-mint px-2.5 py-1 font-semibold text-accent-dim">
               Lv.{s.profile?.level ?? 1}
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-peach px-2.5 py-1 text-warn">
+            <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-peach px-2.5 py-1 text-warn">
               <Flame size={13} /> 连续记录 {s.profile?.streak ?? 0} 天
             </span>
           </div>
         </div>
-        <button className="btn-primary" onClick={() => setShowAdd(true)}>
+        <button className="btn-primary shrink-0 whitespace-nowrap" onClick={() => setShowAdd(true)}>
           <Plus size={16} /> 添加计划
         </button>
       </header>
 
-      <div className="card-pad rise" style={{ animationDelay: '60ms' }}>
+      <LifeOverview />
+
+      <div className="card p-4 rise" style={{ animationDelay: '60ms' }}>
         <div className="flex justify-between text-xs text-muted mb-2">
           <span className="font-medium">成长经验 XP {s.profile?.totalXp ?? 0}</span>
           <span className="font-mono">
@@ -135,7 +141,7 @@ export default function Dashboard() {
         第一次使用？打开中文使用说明 →
       </Link>
 
-      <CheckInCard />
+      <CheckInCard key={today} />
 
       <section className="card-pad rise" style={{ animationDelay: '120ms' }}>
         <div className="flex items-center justify-between mb-3">
@@ -231,11 +237,12 @@ function CheckInCard() {
   const s = useGameStore()
   const date = todayKey()
   const existing = s.checkIns?.[date]
+  const sleep = sleepForDate(s, date)
   const [draft, setDraft] = useState<DailyCheckIn>(() => existing ?? { date, sleep: 7, energy: s.mental.energy, focus: s.mental.focus, mood: s.mental.mood, stress: s.mental.stress, selfEfficacy: s.mental.selfEfficacy, note: '', createdAt: new Date().toISOString() })
   const fields: { key: keyof Pick<DailyCheckIn, 'sleep' | 'energy' | 'focus' | 'mood' | 'stress' | 'selfEfficacy'>; label: string; max: number; suffix?: string }[] = [
-    { key: 'sleep', label: '睡眠', max: 12, suffix: 'h' }, { key: 'energy', label: '精力', max: 100 }, { key: 'focus', label: '专注', max: 100 }, { key: 'mood', label: '情绪', max: 100 }, { key: 'stress', label: '压力', max: 100 }, { key: 'selfEfficacy', label: '自我效能', max: 100 },
+    { key: 'sleep', label: '睡眠（自报）', max: 12, suffix: 'h' }, { key: 'energy', label: '精力', max: 100 }, { key: 'focus', label: '专注', max: 100 }, { key: 'mood', label: '情绪', max: 100 }, { key: 'stress', label: '压力', max: 100 }, { key: 'selfEfficacy', label: '自我效能', max: 100 },
   ]
-  return <section className="card-pad rise" style={{ animationDelay: '90ms' }}><div className="flex items-start justify-between gap-3"><div><h2 className="label flex items-center gap-2"><CalendarCheck size={14} /> 记录今天的状态 <span className="text-xs text-muted font-normal">（可选）</span></h2><p className="text-xs text-muted mt-1">精力、专注等状态参考，不等于每日自评分。详细日常记录请到「每日记录」。</p></div><span className="chip">{existing ? '已记录' : '尚未记录'}</span></div><div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-4 mt-5">{fields.map((field) => <label key={field.key}><div className="flex justify-between text-xs mb-1.5"><span className="text-zinc-600">{field.label}</span><span className="font-mono text-zinc-800">{draft[field.key]}{field.suffix ?? ''}</span></div><input aria-label={field.label} type="range" min={0} max={field.max} step={field.key === 'sleep' ? 0.5 : 1} value={draft[field.key]} onChange={(event) => setDraft((current) => ({ ...current, [field.key]: Number(event.target.value) }))} className="w-full" /></label>)}</div><div className="flex flex-col sm:flex-row gap-2 mt-5"><input aria-label="状态备注" className="input" placeholder="有什么想记下的？（可选）" value={draft.note} onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))} /><button className="btn-primary shrink-0" onClick={() => s.saveCheckIn({ ...draft, date })}><Save size={14} /> 保存状态</button></div><p className="text-[11px] text-muted mt-2">保存后会提供 3 条行动建议；不代表必须完成，也不会因为跳过而扣经验。</p></section>
+  return <section className="card-pad rise" style={{ animationDelay: '90ms' }}><div className="flex items-start justify-between gap-3"><div><h2 className="label flex items-center gap-2"><CalendarCheck size={14} /> 记录今天的状态 <span className="text-xs text-muted font-normal">（可选）</span></h2><p className="text-xs text-muted mt-1">精力、专注等状态参考，不等于每日自评分。详细日常记录请到「每日记录」。</p></div><span className="chip">{existing ? '已记录' : '尚未记录'}</span></div><p className="text-xs text-muted mt-3">{sleep.source === 'interval' ? `睡眠 ${formatDuration(sleep.minutes)}，来自睡眠时段，无需重复填写。` : '睡眠为手动估计的时长；补记睡眠起止时间后会优先使用时段。'}</p><div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-4 mt-5">{fields.filter((field) => field.key !== 'sleep' || sleep.source !== 'interval').map((field) => <label key={field.key}><div className="flex justify-between text-xs mb-1.5"><span className="text-zinc-600">{field.label}</span><span className="font-mono text-zinc-800">{draft[field.key]}{field.suffix ?? ''}</span></div><input aria-label={field.label} type="range" min={0} max={field.max} step={field.key === 'sleep' ? 0.5 : 1} value={draft[field.key]} onChange={(event) => setDraft((current) => ({ ...current, [field.key]: Number(event.target.value) }))} className="w-full" /></label>)}</div><div className="flex flex-col sm:flex-row gap-2 mt-5"><input aria-label="状态备注" className="input" placeholder="有什么想记下的？（可选）" value={draft.note} onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))} /><button className="btn-primary shrink-0" onClick={() => s.saveCheckIn({ ...draft, date, sleep: sleep.source === 'interval' ? sleep.minutes! / 60 : draft.sleep })}><Save size={14} /> 保存状态</button></div><p className="text-[11px] text-muted mt-2">保存后会提供 3 条行动建议；不代表必须完成，也不会因为跳过而扣经验。</p></section>
 }
 
 function DailyActionsCard() {

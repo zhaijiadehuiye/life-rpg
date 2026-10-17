@@ -81,6 +81,8 @@ body {
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-1.5 rounded-xl border border-line px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-ink-800 transition-colors;
   }
+  .research-tab { @apply inline-flex items-center justify-center px-3 py-2 rounded-xl border border-line bg-white/60 text-sm text-zinc-600 transition-colors hover:border-accent/30; }
+  .research-tab-active { @apply bg-mint/70 border-accent/25 text-accent-dim font-medium; }
   .input {
     @apply w-full rounded-xl bg-white border border-line px-3.5 py-2.5 text-sm text-zinc-800
       placeholder:text-muted focus:outline-none focus:border-accent/60 focus:shadow-glow;

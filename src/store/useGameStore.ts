@@ -537,8 +537,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   importJson: (text) => {
     const { state, error } = parseImport(text)
     if (error || !state) return { ok: false, error }
+    try { persistState(state) } catch { return { ok: false, error: '恢复未能保存，当前档案仍保留。请备份后检查浏览器存储。' } }
     set(state)
-    void saveState(state)
     return { ok: true }
   },
 

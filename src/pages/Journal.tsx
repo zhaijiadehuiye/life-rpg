@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useGameStore } from '../store/useGameStore'
 import { todayKey, dateKeyFromTimestamp, formatChineseDate } from '../utils/date'
 import type { DailyLog } from '../types'
 import { SleepRecordSection, ActivityRecordSection } from '../components/TimeRecords'
 import { useNow } from '../utils/useNow'
 import { sleepForDate, clockLabel } from '../lib/dailyTime'
+import { QuickNotes } from '../components/QuickNotes'
 
 type JournalDraft = Pick<DailyLog,
   'whatHappened' | 'bestThing' | 'biggestDifficulty' | 'didRight' | 'tomorrowPriority' |
@@ -20,7 +21,15 @@ const EXERCISE_CHOICES: { label: string; value: boolean | null }[] = [
 
 export default function Journal() {
   const now = useNow()
-  return <JournalDay key={todayKey(now)} today={todayKey(now)} />
+  const initialized = useGameStore((state) => state.initialized)
+  const [params, setParams] = useSearchParams()
+  const notes = params.get('tab') === 'notes' || !initialized
+  return <div className="space-y-5">
+    <header><h1 className="text-2xl font-bold text-zinc-900">每日记录</h1><p className="text-sm text-muted mt-2 leading-relaxed">想简单回顾一天，用「每日总结」；想随时留几句话，用「随手记」。按需要选一个就好。</p></header>
+    <nav aria-label="记录方式" className="flex flex-wrap gap-2"><button className={`research-tab ${!notes ? 'research-tab-active' : ''}`} aria-pressed={!notes} onClick={() => setParams({})} disabled={!initialized}>每日总结</button><button className={`research-tab ${notes ? 'research-tab-active' : ''}`} aria-pressed={notes} onClick={() => setParams({ tab: 'notes' })}>随手记</button><Link to="/timeline" className="text-xs text-accent ml-auto py-2">查看历史 →</Link></nav>
+    {!initialized && <p className="text-xs text-muted">不创建成长档案也能写随手记。想记录作息、每日总结和计划时，可先<Link to="/" className="text-accent underline mx-1">建立自己的档案</Link>。</p>}
+    {notes ? <QuickNotes /> : <JournalDay key={todayKey(now)} today={todayKey(now)} />}
+  </div>
 }
 
 function JournalDay({ today }: { today: string }) {
@@ -53,11 +62,7 @@ function JournalDay({ today }: { today: string }) {
 
   return (
     <div className="space-y-5">
-      <header>
-        <h1 className="text-xl font-semibold text-zinc-800">每日记录</h1>
-        <p className="text-sm text-muted mt-1">记下你在意的日常：几点醒、吃了什么、做了什么、是否运动，以及今天的感受。每项都可跳过，之后可以回来补充或修改。</p>
-        <p className="text-sm text-muted mt-1">这里的文字只保存在 Life RPG 本地存档，不会自动分析或覆盖原文。需要多条原始记录和修订历史时，使用 <Link to="/historian" className="text-accent underline underline-offset-2">自我历史学</Link>。</p>
-      </header>
+      <p className="text-xs text-muted">睡眠和活动时段与「今天」共用。下面的总结每天一份，可以随时更新；想保留多条原文与修订时，切换到上方「随手记」。</p>
 
       <SleepRecordSection date={today} />
 

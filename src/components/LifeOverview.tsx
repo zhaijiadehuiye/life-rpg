@@ -7,9 +7,11 @@ import { useNow } from '../utils/useNow'
 import { allocationForDate, clockLabel, formatDuration, localDateTime, sleepForDate, sleepTimeline } from '../lib/dailyTime'
 import { TimeEntryEditor, TimeRecordList } from './TimeRecords'
 import type { TimeEntry } from '../types'
+import { useResearch } from '../lib/useResearch'
 
 export function LifeOverview() {
   const s = useGameStore()
+  const research = useResearch()
   const now = useNow()
   const date = todayKey(now)
   const sleep = sleepForDate(s, date, now)
@@ -103,6 +105,7 @@ export function LifeOverview() {
           <NoteRow icon={<Cloud size={14} />} label="不顺心的事" value={log?.biggestDifficulty} />
         </div>
         <p className="text-[11px] text-muted mt-4">和「每日记录」是同一份内容，随时可以补充。</p>
+        <Link to="/journal?tab=notes" className="block text-xs text-accent mt-2 underline underline-offset-4">{research.loading ? '正在读取随手记' : research.state ? `今天还有 ${research.state.entries.filter((entry) => entry.date === date).length} 条随手记` : '查看我的随手记'} · 去看看 →</Link>
       </section>
     </div>
     {editor && <TimeEntryEditor date={date} sleep={editor === 'sleep'} entry={typeof editor === 'object' ? editor : undefined} onClose={() => setEditor(null)} />}

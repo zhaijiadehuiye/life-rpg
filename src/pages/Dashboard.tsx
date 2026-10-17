@@ -126,15 +126,10 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section aria-label="Life OS 模块" className="grid gap-3 sm:grid-cols-2">
-        <Link to="/quests" className="card-pad block hover:border-accent/40">
-          <h2 className="font-semibold text-zinc-800">Life RPG · 行动与成长 →</h2>
-          <p className="mt-2 text-sm text-muted">安排任务、记录状态，让现实行动积累技能、经验与资本。</p>
-        </Link>
-        <Link to="/historian" className="card-pad block hover:border-accent/40">
-          <h2 className="font-semibold text-zinc-800">自我历史学 · 记录与理解 →</h2>
-          <p className="mt-2 text-sm text-muted">保留原始记录与修订，回看时间线，用证据检验假设与人生实验。</p>
-        </Link>
+      <section aria-label="常用入口" className="grid gap-3 sm:grid-cols-3">
+        <Link to="/journal?tab=notes" className="card-pad block hover:border-accent/40"><h2 className="font-semibold text-zinc-800">记一件事 →</h2><p className="mt-2 text-sm text-muted">随手记下经历和想法，补充时保留旧版本。</p></Link>
+        <Link to="/timeline" className="card-pad block hover:border-accent/40"><h2 className="font-semibold text-zinc-800">回看过去 →</h2><p className="mt-2 text-sm text-muted">每日总结和随手记放在一起回看。</p></Link>
+        <Link to="/reflection" className="card-pad block hover:border-accent/40"><h2 className="font-semibold text-zinc-800">整理想法 →</h2><p className="mt-2 text-sm text-muted">找生活线索，验证想法，尝试一个小改变。</p></Link>
       </section>
 
       <Link to="/guide" className="inline-flex items-center gap-2 text-sm text-accent underline underline-offset-2">

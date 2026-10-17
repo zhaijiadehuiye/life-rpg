@@ -2,6 +2,8 @@
 import type { GameState } from '../types'
 
 const STORAGE_KEY = 'life-rpg:v1'
+// Native research pages keep using the existing Historian schema-1 IndexedDB via historianStorage.ts.
+// This game payload stays at v3; presenting the two stores together does not migrate either one.
 export const STORAGE_VERSION = 3
 
 export interface PersistedPayload {

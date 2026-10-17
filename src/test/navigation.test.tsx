@@ -7,6 +7,8 @@ import { useGameStore } from '../store/useGameStore'
 import { buildDemoState } from '../data/demo'
 import { saveState } from '../lib/storage'
 import { todayKey } from '../utils/date'
+import { HISTORIAN_FALLBACK, normalizeResearchState } from '../lib/historianStorage'
+import { makeResearchEntry } from '../lib/research'
 
 let host: HTMLDivElement
 let root: ReturnType<typeof createRoot>
@@ -15,6 +17,7 @@ beforeEach(() => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
   Object.defineProperty(window, 'scrollTo', { configurable: true, value: () => undefined })
   localStorage.clear() // jsdom's synthetic test storage only.
+  sessionStorage.clear()
   host = document.createElement('div')
   document.body.appendChild(host)
   root = createRoot(host)
@@ -46,7 +49,8 @@ describe('Life OS module navigation', () => {
 
   it('shows the Chinese getting-started guide before an RPG profile exists', async () => {
     await renderAt('/guide')
-    expect(host.querySelector('h1')?.textContent).toBe('先从今天的一件小事开始')
+    expect(host.querySelector('h1')?.textContent).toBe('这个网页怎么用？')
+    expect(host.querySelector('nav[aria-label="桌面主导航"] a')?.getAttribute('href')).toBe('/guide')
     expect(host.textContent).toContain('状态记录、任务和每日回顾都可以跳过')
     expect(localStorage.getItem('life-rpg:v1')).toBeNull()
   })
@@ -131,10 +135,29 @@ describe('Life OS module navigation', () => {
 
   it('opens historian without creating or replacing an RPG save', async () => {
     await renderAt('/historian')
-    expect(host.querySelector('iframe')?.title).toBe('自我历史学研究工作区')
-    expect(host.querySelector('iframe')?.src).toContain('/personal-historian/index.html')
+    expect(host.querySelector('iframe')).toBeNull()
+    expect(host.querySelector('textarea[aria-label="随手记内容"]')).not.toBeNull()
     expect(localStorage.getItem('life-rpg:v1')).toBeNull()
     expect(host.textContent).not.toContain('Step 1')
+  })
+
+  it('keeps quick-note input and the old archive when storage rejects a save', async () => {
+    const state = normalizeResearchState(null)
+    state.entries.push(makeResearchEntry('已有原文', '2020-01-01', []))
+    const raw = JSON.stringify(state)
+    localStorage.setItem(HISTORIAN_FALLBACK, raw)
+    await renderAt('/journal?tab=notes')
+    const textarea = host.querySelector<HTMLTextAreaElement>('textarea[aria-label="随手记内容"]')!
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(textarea, '不能丢失的未保存内容')
+      textarea.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new DOMException('quota', 'QuotaExceededError') })
+    await act(async () => { host.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })) })
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain('输入仍在')
+    expect(textarea.value).toBe('不能丢失的未保存内容')
+    expect(localStorage.getItem(HISTORIAN_FALLBACK)).toBe(raw)
+    expect(localStorage.getItem('life-rpg:v1')).toBeNull()
   })
 
   it('keeps an unsaved interval in the dialog when browser storage is full', async () => {
@@ -166,17 +189,18 @@ describe('Life OS module navigation', () => {
     await saveState(saved)
     const before = localStorage.getItem('life-rpg:v1')
     await renderAt('/historian')
-    const desktop = host.querySelector('nav[aria-label="桌面主导航"] a[href="/historian"]')
-    const mobile = host.querySelector('nav[aria-label="移动主导航"] a[href="/historian"]')
-    expect(desktop?.textContent).toBe('自我历史学')
-    expect(mobile?.textContent).toBe('自我历史学')
+    const desktop = host.querySelector('nav[aria-label="桌面主导航"] a[href="/timeline"]')
+    const mobile = host.querySelector('nav[aria-label="移动主导航"] a[href="/timeline"]')
+    expect(desktop?.textContent).toBe('历史记录')
+    expect(mobile?.textContent).toBe('历史记录')
     expect(host.querySelectorAll('nav[aria-label="移动主导航"] a')).toHaveLength(5)
-    for (const path of ['/', '/historian']) {
+    for (const path of ['/', '/timeline']) {
       const link = host.querySelector(`nav[aria-label="桌面主导航"] a[href="${path}"]`)!
       await act(async () => { link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })) })
-      if (path === '/') expect(host.querySelector('section[aria-label="Life OS 模块"] a[href="/historian"]')).not.toBeNull()
+      if (path === '/') expect(host.querySelector('section[aria-label="常用入口"] a[href="/timeline"]')).not.toBeNull()
     }
-    expect(host.querySelector('iframe')).not.toBeNull()
+    expect(host.querySelector('iframe')).toBeNull()
+    expect(host.querySelector('h1')?.textContent).toBe('历史记录')
     expect(localStorage.getItem('life-rpg:v1')).toBe(before)
     expect(useGameStore.getState().logs).toEqual(saved.logs)
     expect(useGameStore.getState().sideQuests).toEqual(saved.sideQuests)

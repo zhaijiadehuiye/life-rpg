@@ -13,6 +13,7 @@ import type { Capital, CapitalKey, DailyCheckIn } from '../types'
 import { LifeOverview } from '../components/LifeOverview'
 import { sleepForDate, formatDuration } from '../lib/dailyTime'
 import { useNow } from '../utils/useNow'
+import { TodayFailureReviews } from '../components/TodayFailureReviews'
 
 const MENTAL_LABEL: { key: 'energy' | 'focus' | 'stress' | 'mood' | 'selfEfficacy' | 'socialBattery'; label: string; color: string }[] = [
   { key: 'energy', label: '精力', color: 'bg-accent' },
@@ -69,6 +70,8 @@ export default function Dashboard() {
       </header>
 
       <LifeOverview />
+
+      <TodayFailureReviews />
 
       <div className="card p-4 rise" style={{ animationDelay: '60ms' }}>
         <div className="flex justify-between text-xs text-muted mb-2">

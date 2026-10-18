@@ -14,7 +14,7 @@ import threading
 from playwright.sync_api import sync_playwright, expect
 
 ROOT = Path(__file__).resolve().parent.parent
-SHOTS = ROOT / 'docs/screenshots'
+SHOTS = Path(os.environ.get('LIFE_OS_SCREENSHOTS', ROOT / 'docs/screenshots'))
 SHOTS.mkdir(parents=True, exist_ok=True)
 ORIGINAL = '验收样例（虚构）：今天完成了一次小练习，记录开始时的条件。'
 REVISION = '验收样例（虚构）：补充观察，安静环境帮助我开始小练习。'

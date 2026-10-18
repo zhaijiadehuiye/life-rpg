@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useResearch } from '../../lib/useResearch'
 import { ResearchBoundary } from '../ResearchUI'
 import { useGameStore } from '../../store/useGameStore'
-import { exportState } from '../../lib/storage'
+import { exportState, readFailureReviewPayload } from '../../lib/storage'
 import { mergeResearchImport, parseResearchImport, researchDate, researchExport, researchId } from '../../lib/research'
 import { RESEARCH_COLLECTIONS } from '../../lib/historianStorage'
 import { Modal } from '../Modal'
@@ -30,17 +30,19 @@ export function ResearchArchive() {
     finally { setBusy(false) }
   }
   return <ResearchBoundary><section className="card-pad space-y-4" aria-label="记录与复盘备份">
-    <div><h2 className="text-base font-semibold">记录与复盘档案</h2><p className="text-sm text-muted mt-1">随手记、原文修订、想法与证据、实验、预测和复盘一起备份。换设备或清理浏览器前先导出。</p></div>
+    <div><h2 className="text-base font-semibold">记录与复盘档案</h2><p className="text-sm text-muted mt-1">随手记、原文修订、想法与证据、实验、预测和定期复盘一起备份。换设备或清理浏览器前先导出。</p></div>
     <div className="flex flex-wrap gap-2 text-xs text-muted"><span>{state?.entries.length ?? 0} 条随手记</span><span>· {state?.hypotheses.length ?? 0} 个想法</span><span>· {state?.experiments.length ?? 0} 个实验</span><span>· {state?.predictions.length ?? 0} 条预测</span></div>
     <div className="flex flex-wrap gap-2"><button className="btn-primary" onClick={() => {
-      downloadFile(`life-os-all-${todayKey()}.json`, JSON.stringify({ product: 'Life OS', version: 1, exportedAt: new Date().toISOString(), game: game.initialized ? JSON.parse(exportState(game)) : null, historian: JSON.parse(researchExport(state!)) }, null, 2), 'application/json')
+      setError('')
+      try { downloadFile(`life-os-all-${todayKey()}.json`, JSON.stringify({ product: 'Life OS', version: 1, exportedAt: new Date().toISOString(), game: game.initialized ? JSON.parse(exportState(game)) : null, historian: JSON.parse(researchExport(state!)), failureReviews: readFailureReviewPayload() }, null, 2), 'application/json') }
+      catch { setError('整站备份未能完整读取，已停止导出。请检查失败复盘等本机存档，避免遗漏。') }
     }}>导出整站 JSON 备份</button><button className="btn-ghost" onClick={() => downloadFile(`personal-historian-${todayKey()}.json`, researchExport(state!), 'application/json')}>单独导出记录档案</button><button className="btn-ghost" onClick={() => input.current?.click()}>导入记录档案</button><input ref={input} aria-label="导入记录档案文件" type="file" accept="application/json,.json" className="hidden" onChange={async (event) => {
       const file = event.target.files?.[0]; event.target.value = ''; if (!file) return
       setError('')
       try { const text = await file.text(), parsed = JSON.parse(text); setPreview(parseResearchImport(JSON.stringify(parsed.historian ?? parsed))) }
       catch (error) { setError(error instanceof Error ? error.message : '无法读取 JSON，当前数据未改变。') }
     }} /></div>
-    <p className="text-xs text-muted leading-relaxed">整站备份包含角色与生活记录，以及随手记与复盘档案。恢复时在本页两个区域分别选择同一个文件，并核对预览。记录档案只补充导入，不覆盖现有原文或修订。</p>
+    <p className="text-xs text-muted leading-relaxed">整站备份包含角色与生活记录、随手记与定期复盘档案、失败复盘。恢复时在本页三个对应区域分别选择同一个文件，并核对预览。记录档案与失败复盘只补充导入，不覆盖现有原文或修订；旧备份缺少失败复盘时可跳过该区域。</p>
     {error && <p role="alert" className="text-sm text-danger">{error}</p>}{message && <p role="status" className="text-sm text-accent-dim">{message}</p>}
     <details><summary className="cursor-pointer text-xs text-accent">其他导出格式和本机快照</summary><div className="space-y-4 mt-4"><div className="flex flex-wrap gap-2"><button className="btn-ghost" onClick={() => {
       const sections = ['# 我的记录与复盘', ...state!.entries.map((entry) => `## ${entry.date}\n\n${entry.originalText}\n\n标签：${entry.tags?.join('、') ?? ''}\n\n### 修订历史\n\n${(entry.revisions ?? []).map((revision, index) => `#### 第 ${index + 1} 版 · ${revision.createdAt}\n\n${revision.text}`).join('\n\n')}`), '# 想法与证据', ...state!.hypotheses.map((row) => `## ${row.title}\n\n${row.description}\n\n当前相信程度：${row.confidence}%\n\n${row.confidenceHistory?.map((item) => `${item.date} · ${item.confidence}% · ${item.reason}`).join('\n\n')}`), '# 实验', ...state!.experiments.map((row) => `## ${row.title}\n\n${row.question}\n\n${row.conclusion}\n\n${(row.observations ?? []).map((item) => `${item.date} · ${item.note}`).join('\n\n')}`)]

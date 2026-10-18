@@ -19,12 +19,13 @@ export default function Guide() {
       ['/journal', '每日记录', '写每天的总结，或随时记一条想保留的事。不用两种都填。'],
       ['/timeline', '历史记录', '按日期一起回看总结和随手记，可以搜索，也能查看和追加原文修订。'],
       ['/quests', '计划', '自己安排想做的事。一次性事项做一次；固定习惯每天可完成一次；长期目标可以拆成阶段。'],
-      ['/reflection', '复盘与探索', '有了一些记录以后，再按需要找线索、整理想法、做小实验、记录预测和复盘。'],
+      ['/reflection', '复盘与探索', '记录没按预期的事，给下次留一个小办法；也可以找线索、整理想法、做小实验和定期复盘。'],
       ['/character', '成长与工具', '成长、技能、成就、地图和趋势用于回看积累，不需要每天打开。'],
       ['/settings', '设置与备份', '下载整站 JSON 备份；换浏览器、换设备或清理网站数据前先导出。'],
     ].map(([to, title, text]) => <div key={title} className="flex gap-3 border-b border-line pb-3 last:border-0 last:pb-0"><Link className="text-sm text-accent-dim font-medium shrink-0 w-24" to={to}>{title} →</Link><p className="text-sm text-muted leading-relaxed">{text}</p></div>)}</div></section>
     <section className="card-pad space-y-3"><h2 className="text-base font-semibold">计划和记录有什么关系？</h2><p className="text-sm text-muted leading-relaxed">计划是「我想做什么」，记录是「实际发生了什么」。在计划里做完一项再点圆圈，按原有规则获得经验；写日记或记时段不会自动完成任务。没做、漏记、休息都不会扣掉已有经验。</p><Link className="text-sm text-accent underline underline-offset-4 inline-flex" to="/quests">去添加一件小事 →</Link></section>
-    <section className="card-pad space-y-3"><h2 className="text-base font-semibold">不懂「复盘与探索」，可以先不用</h2><p className="text-sm text-muted leading-relaxed">「回看线索」展示常写的主题；「想法与证据」保留待验证的解释；「小实验」尝试一种改变；「我的预测」以后核对猜测；「定期复盘」留下自己的总结。它们不会强迫你打卡，也不会替你判断你是怎样的人。</p></section>
+    <section className="card-pad space-y-3"><h2 className="text-base font-semibold">一件事没按预期，怎么吸取教训？</h2><p className="text-sm text-muted leading-relaxed">在「今天 → 记一次复盘」写：原本想做什么、实际发生什么、可能卡在哪里、下次只改一件事。先写前两项也能保存。试过之后，再选「有帮助 / 没帮助 / 还没尝试」，补充自己的观察。没完成任务不会自动算失败，复盘不扣经验。</p><Link className="text-sm text-accent underline underline-offset-4" to="/reflection?view=failures">打开失败复盘 →</Link></section>
+    <section className="card-pad space-y-3"><h2 className="text-base font-semibold">其他「复盘与探索」功能，可以慢慢用</h2><p className="text-sm text-muted leading-relaxed">「回看线索」展示常写的主题；「想法与证据」保留待验证的解释；「小实验」尝试一种改变；「我的预测」以后核对猜测；「定期复盘」留下自己的总结。它们不会强迫你打卡，也不会替你判断你是怎样的人。</p></section>
     <details className="card-pad"><summary className="text-base font-semibold cursor-pointer flex items-center gap-2"><CircleHelp size={16} /> 睡眠图表和数据怎么保存？</summary><div className="text-sm text-muted leading-relaxed mt-4 space-y-3"><p>睡眠按醒来那天计算，夜间睡眠和午睡可以分开记。时间分布只算落在当天的部分；未记录的日子留空，不当作零分或休息。图表不从日记文字推算时长。</p><p>同一浏览器里的旧记录继续可用。原自我历史学的八个功能已放进当前界面，旧原文、修订和档案保留在原位置。记录不上传到 GitHub。</p><p>打开「设置与备份 → 导出整站 JSON 备份」下载到自己设备。不同浏览器、设备和域名的数据不自动互通，需要你显式导出和导入。</p><p>先联网打开一次，完成资源加载后可以离线使用。没有保存的输入离开页面后不会保留；清除网站数据前务必导出备份。</p><Link to="/settings" className="text-accent underline underline-offset-4">打开设置与备份 →</Link></div></details>
     <p className="text-xs text-muted">左侧最上方或手机顶部随时可以重新打开「使用引导」。不用把全部功能都用起来。</p>
   </article>

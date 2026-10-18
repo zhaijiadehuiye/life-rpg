@@ -5,7 +5,7 @@ export default function More() {
   const items = [
     { to: '/guide', label: '使用引导', description: '从这里开始，跟着做一遍', icon: CircleHelp },
     { to: '/timeline', label: '历史记录', description: '一起回看每日总结、随手记和原文修订', icon: History },
-    { to: '/reflection', label: '复盘与探索', description: '整理想法、证据、小实验和预测', icon: Lightbulb },
+    { to: '/reflection', label: '复盘与探索', description: '失败复盘、整理想法、证据、小实验和预测', icon: Lightbulb },
     { to: '/character', label: '成长概览', description: '查看经验、等级和个人资本', icon: User },
     { to: '/quests', label: '计划与目标', description: '管理一次性事项、日常习惯和长期目标', icon: Scroll },
     { to: '/skills', label: '技能', description: '记录正在练习的具体能力', icon: Swords },

@@ -43,10 +43,10 @@ export default function Onboarding() {
           <p className="text-muted text-sm mt-2">用计划、成长记录和每日回顾，按自己的节奏整理生活。</p>
         </div>
 
-        <Link to="/guide" className="block mb-4 text-center text-sm text-accent underline underline-offset-2">先看中文使用说明</Link>
+        <Link to="/guide" className="block mb-4 text-center text-sm text-accent underline underline-offset-2">不会用？先看使用引导</Link>
 
-        <Link to="/historian" className="card-pad block mb-6 text-sm hover:border-accent/40">
-          <span className="font-semibold text-accent">只想写人生记录？进入自我历史学 →</span>
+        <Link to="/journal?tab=notes" className="card-pad block mb-6 text-sm hover:border-accent/40">
+          <span className="font-semibold text-accent">只想随手记？直接开始记录 →</span>
           <span className="block text-muted mt-1">可以单独使用，不需要创建成长档案。</span>
         </Link>
 

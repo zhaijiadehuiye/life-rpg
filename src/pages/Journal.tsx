@@ -1,8 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useGameStore } from '../store/useGameStore'
 import { todayKey, dateKeyFromTimestamp, formatChineseDate } from '../utils/date'
 import type { DailyLog } from '../types'
+import { SleepRecordSection, ActivityRecordSection } from '../components/TimeRecords'
+import { useNow } from '../utils/useNow'
+import { sleepForDate, clockLabel } from '../lib/dailyTime'
+import { QuickNotes } from '../components/QuickNotes'
 
 type JournalDraft = Pick<DailyLog,
   'whatHappened' | 'bestThing' | 'biggestDifficulty' | 'didRight' | 'tomorrowPriority' |
@@ -16,8 +20,22 @@ const EXERCISE_CHOICES: { label: string; value: boolean | null }[] = [
 ]
 
 export default function Journal() {
+  const now = useNow()
+  const initialized = useGameStore((state) => state.initialized)
+  const [params, setParams] = useSearchParams()
+  const notes = params.get('tab') === 'notes' || !initialized
+  return <div className="space-y-5">
+    <header><h1 className="text-2xl font-bold text-zinc-900">每日记录</h1><p className="text-sm text-muted mt-2 leading-relaxed">想简单回顾一天，用「每日总结」；想随时留几句话，用「随手记」。按需要选一个就好。</p></header>
+    <nav aria-label="记录方式" className="flex flex-wrap gap-2"><button className={`research-tab ${!notes ? 'research-tab-active' : ''}`} aria-pressed={!notes} onClick={() => setParams({})} disabled={!initialized}>每日总结</button><button className={`research-tab ${notes ? 'research-tab-active' : ''}`} aria-pressed={notes} onClick={() => setParams({ tab: 'notes' })}>随手记</button><Link to="/timeline" className="text-xs text-accent ml-auto py-2">查看历史 →</Link></nav>
+    {!initialized && <p className="text-xs text-muted">不创建成长档案也能写随手记。想记录作息、每日总结和计划时，可先<Link to="/" className="text-accent underline mx-1">建立自己的档案</Link>。</p>}
+    {notes ? <QuickNotes /> : <JournalDay key={todayKey(now)} today={todayKey(now)} />}
+  </div>
+}
+
+function JournalDay({ today }: { today: string }) {
   const s = useGameStore()
-  const today = todayKey()
+  const sleep = sleepForDate(s, today)
+  const [feedback, setFeedback] = useState<{ ok: boolean; error?: string } | null>(null)
   const existing = s.logs.find((l) => l.date === today)
   const [form, setForm] = useState<JournalDraft>(() => ({
     whatHappened: existing?.whatHappened ?? '',
@@ -39,16 +57,14 @@ export default function Journal() {
     const xpToday = s.transactions
       .filter((t) => dateKeyFromTimestamp(t.timestamp) === today && t.kind === 'character')
       .reduce((a, t) => a + t.amount, 0)
-    s.writeLog({ ...form, tasksCompleted: doneToday, xpEarned: xpToday })
+    setFeedback(s.writeLog({ ...form, tasksCompleted: doneToday, xpEarned: xpToday }))
   }
 
   return (
     <div className="space-y-5">
-      <header>
-        <h1 className="text-xl font-semibold text-zinc-800">每日记录</h1>
-        <p className="text-sm text-muted mt-1">记下你在意的日常：几点醒、吃了什么、做了什么、是否运动，以及今天的感受。每项都可跳过，之后可以回来补充或修改。</p>
-        <p className="text-sm text-muted mt-1">这里的文字只保存在 Life RPG 本地存档，不会自动分析或覆盖原文。需要多条原始记录和修订历史时，使用 <Link to="/historian" className="text-accent underline underline-offset-2">自我历史学</Link>。</p>
-      </header>
+      <p className="text-xs text-muted">睡眠和活动时段与「今天」共用。下面的总结每天一份，可以随时更新；想保留多条原文与修订时，切换到上方「随手记」。</p>
+
+      <SleepRecordSection date={today} />
 
       <section className="card-pad space-y-5">
         <div>
@@ -71,11 +87,12 @@ export default function Journal() {
           {form.dayRating != null && <button type="button" className="text-xs text-accent underline underline-offset-2 mt-2" onClick={() => setForm((value) => ({ ...value, dayRating: null }))}>清除评分</button>}
         </fieldset>
 
-        <label className="block max-w-xs">
+        {sleep.main ? <p className="text-sm text-zinc-700">醒来时间：{clockLabel(sleep.main.endedAt, today)} <span className="text-xs text-muted">（来自睡眠时段，在上方修改）</span></p> : <label className="block max-w-xs">
           <span className="text-sm text-zinc-700">大约几点醒来？ <span className="text-xs text-muted">（可选）</span></span>
           <input aria-label="醒来时间" className="input mt-1.5" type="time" value={form.wakeTime ?? ''}
             onChange={(event) => setForm((value) => ({ ...value, wakeTime: event.target.value }))} />
-        </label>
+          <span className="text-xs text-muted block mt-1">仅记醒来时间不会推算睡眠时长；完整作息可在上方补记。</span>
+        </label>}
 
         <TextField label="今天吃了什么？" placeholder="例如：早餐吃了……，晚饭……" value={form.meals ?? ''}
           onChange={(meals) => setForm((value) => ({ ...value, meals }))} />
@@ -116,7 +133,10 @@ export default function Journal() {
           <button className="btn-primary" onClick={save}>{existing ? '保存今天的修改' : '保存今天的记录'}</button>
           <span className="text-xs text-muted">保存后会留在本机浏览器，可随时更新。</span>
         </div>
+        {feedback && <p role={feedback.ok ? 'status' : 'alert'} className={`text-sm ${feedback.ok ? 'text-accent-dim' : 'text-danger'}`}>{feedback.ok ? '已保存到本机。回到「今天」就能看到。' : feedback.error}</p>}
       </section>
+
+      <ActivityRecordSection date={today} />
 
       <section>
         <h2 className="label mb-2">过去的每日记录</h2>

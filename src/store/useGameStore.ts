@@ -19,6 +19,7 @@ import type {
   StatusEffect,
   ActionLog,
   DailyCheckIn,
+  TimeEntryInput,
 } from '../types'
 import { uuid } from '../utils/id'
 
@@ -38,7 +39,8 @@ import {
   newEventFromPool,
 } from '../data/constants'
 import { buildDemoState } from '../data/demo'
-import { loadState, saveState, clearState, exportState, parseImport } from '../services/storage'
+import { loadState, saveState, persistState, clearState, exportState, parseImport } from '../services/storage'
+import { validateTimeEntry } from '../lib/dailyTime'
 import { calculateDailySettlement, generateDailyActions } from '../data/dailyRules'
 
 const emptyMental = (): MentalState => ({
@@ -71,6 +73,7 @@ const initialState: GameState = {
   dailyActions: [],
   actionLogs: [],
   settlements: [],
+  timeEntries: [],
 }
 
 function grantCharacterXp(
@@ -140,6 +143,8 @@ function deriveEffects(m: MentalState, streak: number, daysSinceMain: number): S
 }
 
 interface StoreActions {
+  saveTimeEntry: (input: TimeEntryInput) => { ok: boolean; error?: string }
+  deleteTimeEntry: (id: string) => { ok: boolean; error?: string }
   hydrate: () => Promise<void>
   startDemo: () => void
   completeOnboarding: (args: {
@@ -168,7 +173,7 @@ interface StoreActions {
   ignoreEvent: (id: string) => void
   newRandomEvent: () => void
   addSkill: (name: string, category: string) => void
-  writeLog: (log: Omit<DailyLog, 'date'>) => void
+  writeLog: (log: Omit<DailyLog, 'date'>) => { ok: boolean; error?: string }
   updateDomain: (key: string, patch: Partial<Pick<LifeDomain, 'importance' | 'satisfaction' | 'investment'>>) => void
   setMapNodeStatus: (id: string, status: 'locked' | 'available' | 'completed') => void
   resetAll: () => void
@@ -181,6 +186,33 @@ export type GameStore = GameState & StoreActions
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
   achievements: DEFAULT_ACHIEVEMENTS,
+
+  saveTimeEntry: (input) => {
+    const state = get()
+    const entries = state.timeEntries ?? []
+    const error = validateTimeEntry(input, entries)
+    if (error) return { ok: false, error }
+    const timestamp = new Date().toISOString()
+    const previous = entries.find((entry) => entry.id === input.id)
+    const record = { ...input, id: previous?.id ?? uuid(), createdAt: previous?.createdAt ?? timestamp, updatedAt: timestamp }
+    const timeEntries = previous ? entries.map((entry) => entry.id === previous.id ? record : entry) : [...entries, record]
+    try { persistState({ ...state, timeEntries }) } catch {
+      return { ok: false, error: '未能保存到浏览器，可能是空间不足或存储被禁用。内容仍在，请备份后重试。' }
+    }
+    set({ timeEntries })
+    return { ok: true }
+  },
+
+  deleteTimeEntry: (id) => {
+    const state = get()
+    if (!state.timeEntries?.some((entry) => entry.id === id)) return { ok: false, error: '这段记录已不存在，请重新打开。' }
+    const timeEntries = state.timeEntries.filter((entry) => entry.id !== id)
+    try { persistState({ ...state, timeEntries }) } catch {
+      return { ok: false, error: '删除未保存，原记录仍保留。请备份后重试。' }
+    }
+    set({ timeEntries })
+    return { ok: true }
+  },
 
   hydrate: async () => {
     const saved = await loadState()
@@ -469,20 +501,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   writeLog: (log) => {
     const today = todayKey()
-    set((s) => {
-      const isNewDay = !s.logs.some((l) => l.date === today)
-      const entry: DailyLog = { ...log, date: today }
-      const logs = s.logs.some((l) => l.date === today)
-        ? s.logs.map((l) => (l.date === today ? entry : l))
-        : [entry, ...s.logs]
-      const achievements = isNewDay ? s.achievements.map((a) => {
-        if (a.id !== 'journal-7') return a
-        const progress = Math.min(a.target, a.progress + 1)
-        return { ...a, progress, unlockedAt: progress >= a.target && !a.unlockedAt ? today : a.unlockedAt }
-      }) : s.achievements
-      return { logs, achievements }
-    })
-    persistAfter(get)
+    const s = get()
+    const isNewDay = !s.logs.some((l) => l.date === today)
+    const entry: DailyLog = { ...log, date: today }
+    const logs = s.logs.some((l) => l.date === today)
+      ? s.logs.map((l) => (l.date === today ? entry : l))
+      : [entry, ...s.logs]
+    const achievements = isNewDay ? s.achievements.map((a) => {
+      if (a.id !== 'journal-7') return a
+      const progress = Math.min(a.target, a.progress + 1)
+      return { ...a, progress, unlockedAt: progress >= a.target && !a.unlockedAt ? today : a.unlockedAt }
+    }) : s.achievements
+    try { persistState({ ...s, logs, achievements }) } catch {
+      return { ok: false, error: '未能保存到浏览器，内容仍在。请先复制或备份，再检查浏览器存储。' }
+    }
+    set({ logs, achievements })
+    return { ok: true }
   },
 
   updateDomain: (key, patch) => {
@@ -503,8 +537,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   importJson: (text) => {
     const { state, error } = parseImport(text)
     if (error || !state) return { ok: false, error }
+    try { persistState(state) } catch { return { ok: false, error: '恢复未能保存，当前档案仍保留。请备份后检查浏览器存储。' } }
     set(state)
-    void saveState(state)
     return { ok: true }
   },
 
